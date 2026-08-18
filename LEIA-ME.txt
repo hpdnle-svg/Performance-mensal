@@ -1,0 +1,13 @@
+PERFORMANCE REGIONAL SP - MODELO 08 CORRIGIDO
+
+Correção aplicada na aba/tela "Semana das Bases":
+- O valor semanal deixou de ser média aritmética simples dos percentuais diários.
+- Agora o consolidado semanal é calculado pelo volume total recebido no período, seguindo a lógica operacional do sistema.
+- D0 semanal = soma dos volumes D0 / soma dos Recebidos da semana.
+- D0 + D1 semanal = soma ponderada de D0+D1 pelos Recebidos / soma dos Recebidos da semana.
+- A mesma lógica foi aplicada ao consolidado do Supervisor e ao consolidado de cada DS.
+- Os percentuais de cada dia continuam exibidos individualmente, sem alteração.
+- Os rótulos foram atualizados de "Média semanal" para "Consolidado semanal" para evitar interpretação incorreta.
+
+Importante:
+Para comparar com o sistema, selecione o mesmo indicador nos dois lados: D0 com D0, ou D0+D1 com D0+D1.
