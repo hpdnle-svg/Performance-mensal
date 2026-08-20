@@ -170,8 +170,8 @@ table{width:100%;border-collapse:collapse;min-width:1050px} th{position:sticky;t
     </div>
 
     <div class="grid2">
-      <div class="panel"><div class="panelHead"><div><h2>Melhores DSs · D0</h2><p>Top 10 bases no consolidado mensal.</p></div><span class="badge">DS D0</span></div><canvas id="dsD0Chart"></canvas></div>
-      <div class="panel"><div class="panelHead"><div><h2>Melhores DSs · D0 + D1</h2><p>Top 10 bases no consolidado mensal.</p></div><span class="badge">DS D0+D1</span></div><canvas id="dsD1Chart"></canvas></div>
+      <div class="panel"><div class="panelHead"><div><h2>Melhores DSs · D0</h2><p>Top 20 bases no consolidado mensal.</p></div><span class="badge">DS D0</span></div><canvas id="dsD0Chart"></canvas></div>
+      <div class="panel"><div class="panelHead"><div><h2>Melhores DSs · D0 + D1</h2><p>Top 20 bases no consolidado mensal.</p></div><span class="badge">DS D0+D1</span></div><canvas id="dsD1Chart"></canvas></div>
     </div>
 
     <div class="grid2">
@@ -401,9 +401,22 @@ function prepCanvas(id,h=285){const c=document.getElementById(id),dpr=devicePixe
 function roundRect(ctx,x,y,w,h,r){r=Math.min(r,Math.max(0,w/2),h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function barChart(id,data,opts={}){
  const [ctx,w,h]=prepCanvas(id);const left=opts.left||130,right=42,top=12,rowH=Math.min(25,(h-20)/Math.max(data.length,1)),max=Math.max(...data.map(x=>Math.abs(x[1])),1);
+ const topRankColors=['#146b2e','#23833b','#33984a','#51aa5d','#70ba73'];
+ const bottomRankColors=['#dc7772','#d85f5a','#d24945','#c93431','#b91f1c'];
  ctx.font='11px Segoe UI';ctx.textBaseline='middle';
  if(!data.length){ctx.fillStyle='#7b695f';ctx.textAlign='center';ctx.fillText('Sem dados para este filtro',w/2,h/2);return}
- data.forEach((x,i)=>{const y=top+i*rowH+rowH/2,bw=(w-left-right)*(Math.abs(x[1])/max);ctx.fillStyle='#224f4a';ctx.textAlign='right';ctx.fillText(String(x[0]).slice(0,24),left-9,y);ctx.fillStyle='#d7e8e6';roundRect(ctx,left,y-6,w-left-right,12,6);ctx.fill();ctx.fillStyle=x[1]<0?'#c94b49':(opts.color||'#147a9d');roundRect(ctx,left,y-6,bw,12,6);ctx.fill();ctx.fillStyle='#173f3a';ctx.textAlign='left';ctx.font='bold 11px Segoe UI';const val=opts.percent?fmtPct(x[1]):opts.one?fmt1(x[1]):fmtInt(x[1]);ctx.fillText(val,left+bw+7,y);ctx.font='11px Segoe UI'})
+ data.forEach((x,i)=>{
+   const y=top+i*rowH+rowH/2,bw=(w-left-right)*(Math.abs(x[1])/max);
+   let textColor='#224f4a',valueColor='#173f3a';
+   if(opts.rankTextColors){
+     if(i<5){textColor=valueColor=topRankColors[i]}
+     else if(i>=Math.max(5,data.length-5)){const bi=i-(data.length-5);textColor=valueColor=bottomRankColors[Math.max(0,Math.min(4,bi))]}
+   }
+   ctx.fillStyle=textColor;ctx.textAlign='right';ctx.font=(opts.rankTextColors&&(i<5||i>=data.length-5))?'bold 11px Segoe UI':'11px Segoe UI';ctx.fillText(String(x[0]).slice(0,24),left-9,y);
+   ctx.fillStyle='#d7e8e6';roundRect(ctx,left,y-6,w-left-right,12,6);ctx.fill();
+   ctx.fillStyle=x[1]<0?'#c94b49':(opts.color||'#147a9d');roundRect(ctx,left,y-6,bw,12,6);ctx.fill();
+   ctx.fillStyle=valueColor;ctx.textAlign='left';ctx.font='bold 11px Segoe UI';const val=opts.percent?fmtPct(x[1]):opts.one?fmt1(x[1]):fmtInt(x[1]);ctx.fillText(val,left+bw+7,y);ctx.font='11px Segoe UI'
+ })
 }
 function lineChart(id,series,opts={}){
  const [ctx,w,h]=prepCanvas(id);const left=46,right=20,top=22,bottom=44;const all=series.flatMap(s=>s.data.map(x=>x[1])).filter(Number.isFinite);if(!all.length){ctx.fillStyle='#7b695f';ctx.textAlign='center';ctx.fillText('Adicione mais dias para visualizar a evolução',w/2,h/2);return}
@@ -471,14 +484,16 @@ async function renderRanking(){
  const supervisorRows=await monthlyBySupervisor(month);
 
  // Supervisor rankings are regional, independent of DS filter.
- const supD0=[...supervisorRows].filter(r=>r.received>=10).sort((a,b)=>b.d0Pct-a.d0Pct).slice(0,10).map(r=>[r.supervisor,r.d0Pct]);
- const supD1=[...supervisorRows].filter(r=>r.received>=10).sort((a,b)=>b.d01Pct-a.d01Pct).slice(0,10).map(r=>[r.supervisor,r.d01Pct]);
- barChart('supD0Chart',supD0,{percent:true,left:190});
- barChart('supD1Chart',supD1,{percent:true,left:190});
+ // Exibe 20 posições; somente nomes e percentuais recebem cores por faixa.
+ const supD0=[...supervisorRows].filter(r=>r.received>=10).sort((a,b)=>b.d0Pct-a.d0Pct).slice(0,20).map(r=>[r.supervisor,r.d0Pct]);
+ const supD1=[...supervisorRows].filter(r=>r.received>=10).sort((a,b)=>b.d01Pct-a.d01Pct).slice(0,20).map(r=>[r.supervisor,r.d01Pct]);
+ barChart('supD0Chart',supD0,{percent:true,left:190,rankTextColors:true});
+ barChart('supD1Chart',supD1,{percent:true,left:190,rankTextColors:true});
 
- const valid=[...dsRows].filter(r=>r.received>=10);
- barChart('dsD0Chart',[...valid].sort((a,b)=>b.d0Pct-a.d0Pct).slice(0,10).map(r=>[r.ds,r.d0Pct]),{percent:true,left:110});
- barChart('dsD1Chart',[...valid].sort((a,b)=>b.d01Pct-a.d01Pct).slice(0,10).map(r=>[r.ds,r.d01Pct]),{percent:true,left:110});
+ // Ranking mensal das DSs: somente bases com mais de 350 pacotes recebidos no período.
+ const valid=[...dsRows].filter(r=>r.received>350);
+ barChart('dsD0Chart',[...valid].sort((a,b)=>b.d0Pct-a.d0Pct).slice(0,20).map(r=>[r.ds,r.d0Pct]),{percent:true,left:110,rankTextColors:true});
+ barChart('dsD1Chart',[...valid].sort((a,b)=>b.d01Pct-a.d01Pct).slice(0,20).map(r=>[r.ds,r.d01Pct]),{percent:true,left:110,rankTextColors:true});
  barChart('worstD0Chart',[...valid].sort((a,b)=>a.d0Pct-b.d0Pct).slice(0,10).map(r=>[r.ds,r.d0Pct]),{percent:true,left:110,color:'#c94b49'});
  barChart('worstD1Chart',[...valid].sort((a,b)=>a.d01Pct-b.d01Pct).slice(0,10).map(r=>[r.ds,r.d01Pct]),{percent:true,left:110,color:'#c94b49'});
 
