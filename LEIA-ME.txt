@@ -1,5 +1,6 @@
-PERFORMANCE REGIONAL SP - VERSÃO ONLINE
+PERFORMANCE REGIONAL SP - V9 DESIGN OPERACIONAL iMile
 
 Abra README_ONLINE.md para configurar o Supabase e publicar no GitHub Pages.
+Mantenha index.html e design-v9.css juntos na mesma pasta ao publicar.
 Sem Supabase configurado/login, o painel continua em modo local no navegador.
 Com login online, novas datas ficam persistidas no Supabase e não exigem republicação do GitHub Pages.

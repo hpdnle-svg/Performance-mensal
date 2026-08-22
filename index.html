@@ -87,17 +87,29 @@ table{width:100%;border-collapse:collapse;min-width:1050px} th{position:sticky;t
 @media(max-width:800px){.dsMetrics,.dsChartGrid,.metrics,.toolbar,.supervisorToolbar,.weekMetrics,.grid2,.grid3{grid-template-columns:1fr 1fr}.main{padding:16px}}
 @media(max-width:560px){.dsMetrics,.dsChartGrid,.dsDetailToolbar,.metrics,.toolbar,.supervisorToolbar,.weekMetrics,.grid2,.grid3{grid-template-columns:1fr}.topinner{align-items:flex-start}}
 </style>
+<link rel="stylesheet" href="design-v9.css?v=9">
 </head>
-<body>
-<header class="topbar"><div class="topinner"><div class="brand"><div class="logo">iM</div><div><h1>Performance Regional SP</h1><p>Histórico diário · Evolução mensal · Performance das DSs</p></div></div><div class="sub" style="color:#eaded7;text-align:right">Armazenamento do painel<br><strong id="dbStatus" style="color:#fff">Inicializando...</strong></div></div></header>
+<body class="v9">
+<header class="topbar">
+  <div class="topinner">
+    <div class="brand-lockup" aria-label="iMile Delivery">
+      <div class="brand-mark"><i></i><b>iMile</b></div><span>Delivery</span>
+    </div>
+    <div class="headline-lockup">
+      <h1>PERFORMANCE REGIONAL SP</h1>
+      <p>Histórico diário · Evolução mensal · Performance das DSs</p>
+    </div>
+    <div class="database-meta"><span>Armazenamento do painel</span><strong id="dbStatus">Inicializando...</strong></div>
+  </div>
+</header>
 
 <main class="main">
   <div class="tabs">
-    <button class="tab active" data-view="daily">📊 Painel Diário</button>
-    <button class="tab" data-view="monthly">📈 Evolução Mensal</button>
-    <button class="tab" data-view="ranking">🏆 Ranking das DSs</button>
-    <button class="tab" data-view="supervisor">👤 Supervisor</button>
-    <button class="tab" data-view="history">🗃️ Base Histórica</button>
+    <button class="tab active" data-view="daily">Painel Diário</button>
+    <button class="tab" data-view="monthly">Evolução Mensal</button>
+    <button class="tab" data-view="ranking">Ranking das DSs</button>
+    <button class="tab" data-view="supervisor">Supervisor</button>
+    <button class="tab" data-view="history">Base Histórica</button>
   </div>
 
   <section id="view-daily" class="view active">
@@ -301,6 +313,8 @@ table{width:100%;border-collapse:collapse;min-width:1050px} th{position:sticky;t
   </section>
 </main>
 
+<footer class="appFooter">iMile Performance Regional SP · Histórico local e Supabase</footer>
+
 <script src="config.js"></script>
 <script src="jszip.min.js"></script>
 <script>
@@ -401,7 +415,7 @@ function prepCanvas(id,h=285){const c=document.getElementById(id),dpr=devicePixe
 function roundRect(ctx,x,y,w,h,r){r=Math.min(r,Math.max(0,w/2),h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function barChart(id,data,opts={}){
  const [ctx,w,h]=prepCanvas(id);const left=opts.left||130,right=42,top=12,rowH=Math.min(25,(h-20)/Math.max(data.length,1)),max=Math.max(...data.map(x=>Math.abs(x[1])),1);
- const topRankColors=['#146b2e','#23833b','#33984a','#51aa5d','#70ba73'];
+ const topRankColors=['#063b83','#0b56c9','#2878d7','#4a91e2','#77afe9'];
  const bottomRankColors=['#dc7772','#d85f5a','#d24945','#c93431','#b91f1c'];
  ctx.font='11px Segoe UI';ctx.textBaseline='middle';
  if(!data.length){ctx.fillStyle='#7b695f';ctx.textAlign='center';ctx.fillText('Sem dados para este filtro',w/2,h/2);return}
@@ -413,16 +427,16 @@ function barChart(id,data,opts={}){
      else if(i>=Math.max(5,data.length-5)){const bi=i-(data.length-5);textColor=valueColor=bottomRankColors[Math.max(0,Math.min(4,bi))]}
    }
    ctx.fillStyle=textColor;ctx.textAlign='right';ctx.font=(opts.rankTextColors&&(i<5||i>=data.length-5))?'bold 11px Segoe UI':'11px Segoe UI';ctx.fillText(String(x[0]).slice(0,24),left-9,y);
-   ctx.fillStyle='#d7e8e6';roundRect(ctx,left,y-6,w-left-right,12,6);ctx.fill();
-   ctx.fillStyle=x[1]<0?'#c94b49':(opts.color||'#147a9d');roundRect(ctx,left,y-6,bw,12,6);ctx.fill();
+   ctx.fillStyle='#e5edf7';roundRect(ctx,left,y-6,w-left-right,12,6);ctx.fill();
+   ctx.fillStyle=x[1]<0?'#c94b49':(opts.color||'#0b56c9');roundRect(ctx,left,y-6,bw,12,6);ctx.fill();
    ctx.fillStyle=valueColor;ctx.textAlign='left';ctx.font='bold 11px Segoe UI';const val=opts.percent?fmtPct(x[1]):opts.one?fmt1(x[1]):fmtInt(x[1]);ctx.fillText(val,left+bw+7,y);ctx.font='11px Segoe UI'
  })
 }
 function lineChart(id,series,opts={}){
  const [ctx,w,h]=prepCanvas(id);const left=46,right=20,top=22,bottom=44;const all=series.flatMap(s=>s.data.map(x=>x[1])).filter(Number.isFinite);if(!all.length){ctx.fillStyle='#7b695f';ctx.textAlign='center';ctx.fillText('Adicione mais dias para visualizar a evolução',w/2,h/2);return}
  const min=opts.zero?0:Math.min(...all),max=Math.max(...all),span=(max-min)||1,n=Math.max(...series.map(s=>s.data.length),1);
- ctx.strokeStyle='#c6dedb';ctx.lineWidth=1;for(let i=0;i<4;i++){const y=top+(h-top-bottom)*i/3;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
- const colors=['#0b6f8c','#0b8c64','#f0c33b','#2e8fd3'];
+ ctx.strokeStyle='#d8e3f1';ctx.lineWidth=1;for(let i=0;i<4;i++){const y=top+(h-top-bottom)*i/3;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
+ const colors=['#0b56c9','#25a7e0','#f3c500','#153a72'];
  series.forEach((s,si)=>{ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=2.5;ctx.beginPath();s.data.forEach((p,i)=>{const x=left+(w-left-right)*(i/Math.max(1,p[2]-1)),y=top+(h-top-bottom)*(1-(p[1]-min)/span);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);ctx.fillStyle=colors[si%colors.length];ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();ctx.beginPath(); if(i===0)ctx.moveTo(x,y)}); // redraw continuous line
  ctx.beginPath();s.data.forEach((p,i)=>{const x=left+(w-left-right)*(i/Math.max(1,p[2]-1)),y=top+(h-top-bottom)*(1-(p[1]-min)/span);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()});
  const labels=series[0].data.map(x=>x[0]);ctx.fillStyle='#4a6a66';ctx.textAlign='center';ctx.font='10px Segoe UI';labels.forEach((l,i)=>{if(i%Math.ceil(labels.length/8||1)===0||i===labels.length-1){const x=left+(w-left-right)*(i/Math.max(1,labels.length-1));ctx.fillText(l,x,h-18)}});
@@ -590,12 +604,12 @@ function drawWeekLine(data){
  const [ctx,w,h]=prepCanvas('weekSupervisorChart',300);
  const vals=data.days.map(d=>d.val);
  const left=50,right=26,top=25,bottom=55,uw=w-left-right,uh=h-top-bottom;
- ctx.strokeStyle='#b9d7cf';ctx.lineWidth=1;
+ ctx.strokeStyle='#d8e3f1';ctx.lineWidth=1;
  [0,.25,.5,.75,1].forEach(v=>{const y=top+uh*(1-v);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();ctx.fillStyle='#58716a';ctx.font='10px Segoe UI';ctx.textAlign='right';ctx.fillText(Math.round(v*100)+'%',left-7,y+3)});
  const pts=[];
  vals.forEach((v,i)=>{if(Number.isFinite(v))pts.push([i,v])});
  if(!pts.length){ctx.fillStyle='#6a7c76';ctx.textAlign='center';ctx.fillText('Sem dados para esta semana',w/2,h/2);return}
- ctx.strokeStyle='#1678a4';ctx.lineWidth=2.5;ctx.beginPath();
+ ctx.strokeStyle='#0b56c9';ctx.lineWidth=2.5;ctx.beginPath();
  pts.forEach(([i,v],j)=>{const x=left+uw*i/6,y=top+uh*(1-Math.max(0,Math.min(1,v)));if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
  data.days.forEach((d,i)=>{
    const x=left+uw*i/6;
@@ -627,8 +641,8 @@ function drawMultiLineWeek(id, series, percentMode=false){
  const all=series.flatMap(s=>s.values.filter(Number.isFinite));
  if(!all.length){ctx.fillStyle='#6d7c77';ctx.textAlign='center';ctx.fillText('Sem dados para esta DS',w/2,h/2);return}
  const max=percentMode?1:Math.max(...all,1),min=0,span=max-min||1;
- ctx.strokeStyle='#cadbd4';ctx.lineWidth=1;for(let i=0;i<5;i++){const y=top+uh*i/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
- const colors=['#1678a4','#15945a','#e0aa16','#7c58a5'];
+ ctx.strokeStyle='#d8e3f1';ctx.lineWidth=1;for(let i=0;i<5;i++){const y=top+uh*i/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke()}
+ const colors=['#0b56c9','#25a7e0','#f3c500','#153a72'];
  series.forEach((s,si)=>{
    const pts=[];s.values.forEach((v,i)=>{if(Number.isFinite(v))pts.push([i,v])});
    if(!pts.length)return;

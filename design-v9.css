@@ -1,0 +1,318 @@
+/* Performance Regional SP — V9 iMile Operational Design
+   Camada visual isolada: nenhuma regra de dados, Supabase ou importação é alterada. */
+
+.v9 {
+  --i-navy:#001f4d;
+  --i-navy-2:#073c83;
+  --i-blue:#0866df;
+  --i-cyan:#1597e5;
+  --i-yellow:#f7c600;
+  --i-red:#df3447;
+  --i-green:#11984a;
+  --i-ink:#071d43;
+  --i-muted:#62728a;
+  --i-line:#d6dfea;
+  --i-line-strong:#b9c8da;
+  --i-bg:#f3f6fa;
+  --i-soft:#f7f9fc;
+  --i-white:#fff;
+  --i-shadow:0 8px 24px rgba(4,38,86,.07);
+  margin:0 !important;
+  min-height:100vh;
+  background:var(--i-bg) !important;
+  background-image:none !important;
+  color:var(--i-ink) !important;
+  font-family:Inter,"Segoe UI",Arial,sans-serif !important;
+  font-size:15px !important;
+}
+
+.v9 * { box-sizing:border-box; }
+.v9 button,.v9 select,.v9 input { font:inherit; }
+
+/* Cabeçalho */
+.v9 .topbar {
+  min-height:108px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:linear-gradient(105deg,#001a40 0%,#00275d 58%,#003b86 100%) !important;
+  box-shadow:none !important;
+  color:#fff !important;
+}
+.v9 .topinner {
+  width:min(1660px,100%); min-height:108px; margin:0 auto !important; padding:18px 34px !important;
+  display:grid !important; grid-template-columns:220px minmax(420px,1fr) 340px !important;
+  align-items:center !important; gap:24px !important;
+}
+.v9 .brand-lockup { display:block; color:#fff; }
+.v9 .brand-mark { display:flex; align-items:center; gap:7px; line-height:1; }
+.v9 .brand-mark i {
+  width:7px; height:39px; display:block; border-radius:2px;
+  background:linear-gradient(180deg,#45c2ee 0 26%,#fff 26% 63%,#45c2ee 63%);
+  box-shadow:10px 8px 0 -1px #fff;
+}
+.v9 .brand-mark b {
+  margin-left:7px; color:#fff; font-size:40px; line-height:1;
+  letter-spacing:-2.5px; font-weight:900;
+}
+.v9 .brand-lockup>span { display:block; margin:3px 0 0 28px; color:#fff; font-size:13px; font-weight:600; }
+.v9 .headline-lockup { min-width:0; text-align:center; }
+.v9 .headline-lockup h1 {
+  margin:0 !important; color:#fff !important; font-size:32px !important;
+  line-height:1.05 !important; letter-spacing:.01em !important; font-weight:850 !important;
+}
+.v9 .headline-lockup p {
+  margin:7px 0 0 !important; color:#fff !important; font-size:14px !important; font-weight:500 !important;
+}
+.v9 .database-meta {
+  padding-left:18px; border-left:1px solid rgba(255,255,255,.24);
+  color:#dce9f8; text-align:left;
+}
+.v9 .database-meta::before { content:"◷"; margin-right:8px; color:#75c8f1; }
+.v9 .database-meta span { display:inline; font-size:11px; font-weight:500; }
+.v9 .database-meta strong { display:block; margin:6px 0 0 22px; color:#fff !important; font-size:12px; line-height:1.3; font-weight:750; }
+
+/* Estrutura e navegação */
+.v9 .main { max-width:1660px !important; margin:0 auto !important; padding:0 22px 34px !important; }
+.v9 .tabs {
+  min-height:56px; margin:0 -22px 14px !important; padding:0 34px !important;
+  display:flex !important; flex-wrap:nowrap !important; align-items:stretch !important; gap:4px !important;
+  border-bottom:1px solid var(--i-line); background:#fff; overflow-x:auto;
+}
+.v9 .tab {
+  position:relative; min-width:178px; min-height:55px; padding:0 20px !important;
+  border:0 !important; border-radius:0 !important; background:transparent !important;
+  color:#172c4f !important; box-shadow:none !important; font-size:14px !important; font-weight:720 !important;
+}
+.v9 .tab::after {
+  content:""; position:absolute; left:18px; right:18px; bottom:-1px; height:3px;
+  background:transparent; transform:scaleX(.4); transition:.18s ease;
+}
+.v9 .tab:hover { color:var(--i-blue) !important; background:#f7faff !important; }
+.v9 .tab.active { color:var(--i-blue) !important; background:transparent !important; border:0 !important; }
+.v9 .tab.active::after { background:var(--i-blue); transform:scaleX(1); }
+.v9 .tab:focus { outline:none; }
+.v9 .tab:focus-visible { outline:2px solid var(--i-blue); outline-offset:-3px; }
+.v9 .view { color:var(--i-ink); }
+
+/* Barras de contexto e filtros */
+.v9 .toolbar,.v9 .supervisorToolbar {
+  margin:0 0 14px !important; padding:12px 14px !important;
+  gap:12px !important; align-items:stretch !important;
+  border:1px solid var(--i-line); border-radius:6px;
+  background:#fff; box-shadow:none;
+}
+.v9 .toolbar { grid-template-columns:1.2fr .8fr .8fr .8fr .9fr !important; }
+.v9 .supervisorToolbar { grid-template-columns:1.1fr 1fr 1fr 1fr 220px !important; }
+.v9 .toolbar>.box,.v9 .supervisorToolbar>.box {
+  min-width:0; padding:4px 8px !important; border:0 !important; border-right:1px solid var(--i-line) !important;
+  border-radius:0 !important; background:#fff !important; box-shadow:none !important;
+}
+.v9 .toolbar>.box:nth-last-child(1),.v9 .supervisorToolbar>.box:nth-last-child(2) { border-right:0 !important; }
+.v9 .box {
+  padding:13px 14px !important; border:1px solid var(--i-line) !important; border-radius:5px !important;
+  background:#fff !important; box-shadow:none !important;
+}
+.v9 .box label {
+  margin:0 0 6px !important; color:#2b405f !important; font-size:10px !important;
+  line-height:1 !important; letter-spacing:.025em !important; font-weight:800 !important; text-transform:none !important;
+}
+.v9 select,.v9 input[type=date],.v9 input[type=month],.v9 input[type=email],.v9 input[type=password],.v9 input[type=file] {
+  min-height:42px; padding:0 12px !important; border:1px solid var(--i-line-strong) !important;
+  border-radius:4px !important; background:#fff !important; color:var(--i-ink) !important;
+  box-shadow:none !important; font-size:13px !important; font-weight:550 !important; outline:none !important;
+}
+.v9 input[type=file] { padding:8px 10px !important; }
+.v9 select:focus,.v9 input:focus { border-color:var(--i-blue) !important; outline:3px solid rgba(8,102,223,.12) !important; }
+.v9 .report { min-height:52px; gap:10px !important; }
+.v9 .reportIcon {
+  width:38px !important; height:38px !important; border-radius:50% !important;
+  background:#eaf3ff !important; color:var(--i-blue) !important; font-size:17px !important;
+}
+.v9 .reportTitle { color:var(--i-ink) !important; font-size:13px !important; font-weight:820 !important; }
+.v9 .sub { color:var(--i-muted) !important; font-size:11px !important; }
+
+/* Botões */
+.v9 .importBtn,.v9 .primary,.v9 .danger,.v9 .ghost,.v9 .supervisorImageBtn,.v9 .dsImageBtn {
+  min-height:42px; padding:0 15px !important; border-radius:4px !important;
+  box-shadow:none !important; font-size:12px !important; font-weight:760 !important; transition:.18s ease;
+}
+.v9 .importBtn,.v9 .primary,.v9 .supervisorImageBtn,.v9 .dsImageBtn {
+  border:1px solid var(--i-blue) !important; background:var(--i-blue) !important; color:#fff !important;
+}
+.v9 .importBtn:hover,.v9 .primary:hover,.v9 .supervisorImageBtn:hover,.v9 .dsImageBtn:hover { background:#075ac4 !important; }
+.v9 .ghost { border:1px solid var(--i-line-strong) !important; background:#fff !important; color:var(--i-ink) !important; }
+.v9 .ghost:hover { border-color:var(--i-blue) !important; color:var(--i-blue) !important; }
+.v9 .danger { border:1px solid var(--i-red) !important; background:var(--i-red) !important; color:#fff !important; }
+
+/* Indicadores: uma única faixa analítica */
+.v9 .metrics {
+  display:grid !important; grid-template-columns:repeat(6,1fr) !important; gap:0 !important;
+  margin:0 0 14px !important; padding:16px 0 !important;
+  border:1px solid var(--i-line); border-radius:6px; background:#fff; box-shadow:none;
+}
+.v9 .metrics .metric,.v9 .metric {
+  min-height:105px; padding:7px 20px !important; display:flex; flex-direction:column; justify-content:center;
+  border:0 !important; border-right:1px solid var(--i-line) !important; border-radius:0 !important;
+  background:#fff !important; background-image:none !important; box-shadow:none !important; overflow:visible !important;
+}
+.v9 .metrics .metric:last-child { border-right:0 !important; }
+.v9 .metric::after { display:none !important; }
+.v9 .metric .label {
+  color:#243a5b !important; font-size:10px !important; line-height:1.15 !important;
+  letter-spacing:.035em !important; font-weight:850 !important; text-transform:uppercase;
+}
+.v9 .metric .value {
+  margin:11px 0 3px !important; color:var(--i-blue) !important;
+  font-size:32px !important; line-height:1 !important; letter-spacing:-.03em !important; font-weight:850 !important;
+}
+.v9 .metric.green .value { color:var(--i-green) !important; }
+.v9 .metric.red .value { color:var(--i-red) !important; }
+.v9 .metric.yellow .value { color:#b98b00 !important; }
+.v9 .metric .foot { color:var(--i-muted) !important; font-size:10px !important; }
+
+/* Áreas de gráficos integradas */
+.v9 .view>.grid2,.v9 .view>.grid3 {
+  gap:0 !important; margin:0 0 14px !important; padding:0 !important;
+  border:1px solid var(--i-line); border-radius:6px; background:#fff; overflow:hidden;
+}
+.v9 .view>.grid2>.panel,.v9 .view>.grid3>.panel {
+  margin:0 !important; border:0 !important; border-right:1px solid var(--i-line) !important;
+  border-radius:0 !important; box-shadow:none !important;
+}
+.v9 .view>.grid2>.panel:last-child,.v9 .view>.grid3>.panel:last-child { border-right:0 !important; }
+.v9 .panel {
+  padding:16px !important; border:1px solid var(--i-line) !important; border-top:1px solid var(--i-line) !important;
+  border-radius:6px !important; background:#fff !important; background-image:none !important;
+  box-shadow:none !important; color:var(--i-ink) !important;
+}
+.v9 .panelHead {
+  min-height:45px; margin:0 0 9px !important; padding:0 0 10px;
+  border-bottom:1px solid var(--i-line); align-items:flex-start !important;
+}
+.v9 .panel h2 { color:var(--i-ink) !important; font-size:14px !important; line-height:1.2 !important; font-weight:820 !important; }
+.v9 .panel p { color:var(--i-muted) !important; font-size:10px !important; line-height:1.35 !important; }
+.v9 .badge {
+  padding:0 !important; border:0 !important; border-radius:0 !important;
+  background:transparent !important; color:var(--i-blue) !important;
+  font-size:9px !important; letter-spacing:.05em; font-weight:850 !important;
+}
+.v9 canvas { height:285px !important; background:#fff !important; }
+
+/* Tabelas e histórico */
+.v9 .tableWrap,.v9 .weekTableWrap {
+  border:1px solid var(--i-line) !important; border-radius:4px !important; background:#fff; overflow:auto !important;
+}
+.v9 table { color:var(--i-ink) !important; }
+.v9 th,.v9 .weekTable th {
+  padding:9px 10px !important; border:0 !important; border-bottom:2px solid var(--i-blue) !important;
+  background:#f3f7fc !important; color:#203654 !important; font-size:9px !important;
+  line-height:1.2 !important; font-weight:850 !important; text-transform:uppercase !important;
+}
+.v9 .weekTable th:first-child { background:#eaf2fb !important; color:#203654 !important; }
+.v9 td,.v9 .weekTable td {
+  padding:9px 10px !important; border:0 !important; border-bottom:1px solid #e2e8f0 !important;
+  background:#fff; color:#1a2d4a; font-size:10px !important;
+}
+.v9 tbody tr:hover td { background:#f5f9ff !important; }
+.v9 .dayCards { gap:8px !important; }
+.v9 .dayCard {
+  padding:12px !important; border:1px solid var(--i-line) !important; border-radius:5px !important;
+  background:#fff !important; box-shadow:none !important;
+}
+.v9 .dayCard strong { color:var(--i-ink); }
+.v9 .notice {
+  padding:11px 13px !important; border:1px solid #e6d47a !important; border-radius:4px !important;
+  background:#fff9d8 !important; color:#5e5117 !important; font-size:10px !important;
+}
+.v9 .historyActions { gap:8px !important; }
+
+/* Supervisor e detalhe semanal */
+.v9 .weekMetrics {
+  display:grid !important; grid-template-columns:repeat(4,1fr) !important; gap:0 !important;
+  margin:0 0 14px !important; padding:15px 0 !important;
+  border:1px solid var(--i-line); border-radius:6px; background:#fff;
+}
+.v9 .weekMetric {
+  min-height:105px; padding:8px 20px !important; display:flex; flex-direction:column; justify-content:center;
+  border:0 !important; border-right:1px solid var(--i-line) !important; border-radius:0 !important;
+  background:#fff !important; box-shadow:none !important;
+}
+.v9 .weekMetric:last-child { border-right:0 !important; }
+.v9 .weekMetric .label,.v9 .dsMetric .label {
+  color:#243a5b !important; font-size:10px !important; letter-spacing:.035em !important; font-weight:850 !important;
+}
+.v9 .weekMetric .value,.v9 .dsMetric .value {
+  margin:10px 0 3px !important; color:var(--i-blue) !important;
+  font-size:29px !important; line-height:1 !important; font-weight:850 !important;
+}
+.v9 .weekMetric.green .value,.v9 .dsMetric.green .value { color:var(--i-green) !important; }
+.v9 .weekMetric.red .value,.v9 .dsMetric.red .value { color:var(--i-red) !important; }
+.v9 .weekMetric.yellow .value,.v9 .dsMetric.yellow .value { color:#b98b00 !important; }
+.v9 .weekLegend { color:var(--i-muted) !important; }
+.v9 .dsWeekBlock { margin-top:14px !important; }
+.v9 .dsMetrics {
+  display:grid !important; grid-template-columns:repeat(6,1fr) !important; gap:0 !important;
+  margin:0 0 14px !important; padding:14px 0 !important;
+  border:1px solid var(--i-line); border-radius:5px; background:#fff;
+}
+.v9 .dsMetric {
+  min-height:95px; padding:8px 16px !important; border:0 !important; border-right:1px solid var(--i-line) !important;
+  border-radius:0 !important; background:#fff !important;
+}
+.v9 .dsMetric:last-child { border-right:0 !important; }
+.v9 .dsChartGrid { gap:0 !important; border:1px solid var(--i-line); border-radius:5px; overflow:hidden; }
+.v9 .dsChartGrid>.panel { border:0 !important; border-right:1px solid var(--i-line) !important; border-bottom:1px solid var(--i-line) !important; border-radius:0 !important; }
+.v9 .dsDetailToolbar { align-items:end; }
+
+.v9 .pos { color:var(--i-green) !important; }
+.v9 .neg { color:var(--i-red) !important; }
+.v9 .week-red { background:#fde7e9 !important; color:#9f2533 !important; }
+.v9 .week-yellow { background:#fff5c7 !important; color:#765c00 !important; }
+.v9 .week-green { background:#e4f5ea !important; color:#0c6634 !important; }
+.v9 .week-empty { background:#f3f5f7 !important; color:#8290a2 !important; }
+
+.v9 .appFooter {
+  max-width:1660px; margin:0 auto; padding:14px 22px 20px;
+  border-top:1px solid var(--i-line); color:#718097; font-size:10px; text-align:center;
+}
+
+@media(max-width:1200px) {
+  .v9 .topinner { grid-template-columns:180px minmax(320px,1fr) 280px !important; padding:16px 24px !important; }
+  .v9 .brand-mark b { font-size:34px; }
+  .v9 .headline-lockup h1 { font-size:27px !important; }
+  .v9 .metrics,.v9 .dsMetrics { grid-template-columns:repeat(3,1fr) !important; }
+  .v9 .metric:nth-child(3),.v9 .dsMetric:nth-child(3) { border-right:0 !important; }
+  .v9 .metric:nth-child(-n+3),.v9 .dsMetric:nth-child(-n+3) { border-bottom:1px solid var(--i-line) !important; }
+  .v9 .toolbar,.v9 .supervisorToolbar { grid-template-columns:repeat(3,1fr) !important; }
+  .v9 .toolbar>.box,.v9 .supervisorToolbar>.box { border-right:0 !important; }
+}
+
+@media(max-width:820px) {
+  .v9 .topinner { grid-template-columns:1fr !important; gap:13px !important; text-align:center; }
+  .v9 .brand-lockup { display:none; }
+  .v9 .database-meta { padding:0; border-left:0; text-align:center; }
+  .v9 .database-meta strong { margin-left:0; }
+  .v9 .main { padding:0 12px 26px !important; }
+  .v9 .tabs { margin:0 -12px 12px !important; padding:0 12px !important; }
+  .v9 .tab { min-width:155px; }
+  .v9 .toolbar,.v9 .supervisorToolbar { grid-template-columns:1fr 1fr !important; }
+  .v9 .metrics,.v9 .dsMetrics,.v9 .weekMetrics { grid-template-columns:1fr 1fr !important; }
+  .v9 .metric,.v9 .dsMetric,.v9 .weekMetric { border-bottom:1px solid var(--i-line) !important; }
+  .v9 .view>.grid2,.v9 .view>.grid3,.v9 .grid2,.v9 .grid3,.v9 .dsChartGrid { grid-template-columns:1fr !important; }
+  .v9 .view>.grid2>.panel,.v9 .view>.grid3>.panel { border-right:0 !important; border-bottom:1px solid var(--i-line) !important; }
+}
+
+@media(max-width:560px) {
+  .v9 .headline-lockup h1 { font-size:24px !important; }
+  .v9 .toolbar,.v9 .supervisorToolbar,.v9 .metrics,.v9 .dsMetrics,.v9 .weekMetrics { grid-template-columns:1fr !important; }
+  .v9 .metric,.v9 .dsMetric,.v9 .weekMetric { border-right:0 !important; }
+  .v9 .dsDetailToolbar { grid-template-columns:1fr !important; }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .v9 * { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}
+
+@media print {
+  .v9,.v9 .panel,.v9 .metrics,.v9 .weekMetrics,.v9 .dsMetrics { background:#fff !important; }
+}

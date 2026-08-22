@@ -1,6 +1,8 @@
-# Performance Regional SP - versão online
+# Performance Regional SP — V9 Design Operacional iMile
 
 Esta versão mantém o painel no GitHub Pages e grava o histórico diário no Supabase. Assim, ao importar um novo Excel pelo painel, a data fica disponível nas próximas consultas e em outros computadores, sem republicar o site.
+
+A identidade visual V9 padroniza cabeçalho, navegação, filtros, indicadores, gráficos e tabelas com as cores institucionais da iMile. A atualização é somente visual: cálculos, filtros, importação Excel, histórico local, backup, restauração e sincronização com o Supabase foram preservados.
 
 ## 1. Criar o banco
 1. Crie um projeto no Supabase.
@@ -14,7 +16,7 @@ Esta versão mantém o painel no GitHub Pages e grava o histórico diário no Su
 4. Nunca coloque a chave `service_role` no GitHub ou no navegador.
 
 ## 3. Publicar no GitHub Pages
-Envie `index.html`, `jszip.min.js` e `config.js` para a raiz do repositório usado pelo GitHub Pages. Os arquivos `setup_supabase.sql`, `config.example.js` e este README podem ficar no repositório também.
+Envie `index.html`, `design-v9.css`, `jszip.min.js` e `config.js` para a raiz do repositório usado pelo GitHub Pages. Os arquivos `setup_supabase.sql`, `config.example.js` e este README podem ficar no repositório também.
 
 ## 4. Uso diário
 1. Abra o painel publicado.
