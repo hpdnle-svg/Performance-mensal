@@ -1,6 +1,6 @@
 // CONFIGURAÇÃO DO SUPABASE
-// Copie a URL do projeto e a chave pública (anon/publishable) em Project Settings > API.
+// URL do projeto e chave pública (publishable) para uso no navegador.
 window.SUPABASE_CONFIG = {
-  url: "SEU-PROJETO.supabase.co",
-  anonKey: "SUA-CHAVE-PUBLICA-ANON"
+  url: "https://qfmhdwpxnbtldqxbvmys.supabase.co",
+  anonKey: "sb_publishable_ursCGiTtb1fjgPDUcn7m2Q_vkA861Rk"
 };
