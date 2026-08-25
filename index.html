@@ -958,7 +958,7 @@ cloudLoginBtn.addEventListener('click',async()=>{try{cloudMessage.textContent='C
 cloudLogoutBtn.addEventListener('click',cloudLogout);
 migrateLocalBtn.addEventListener('click',async()=>{try{cloudMessage.textContent='Enviando histórico local...';await migrateLocalToCloud()}catch(e){cloudMessage.textContent='❌ '+e.message}});
 window.addEventListener('resize',()=>{const active=document.querySelector('.view.active')?.id;if(active==='view-daily')renderDaily();if(active==='view-monthly')renderMonthly();if(active==='view-ranking')renderRanking();if(active==='view-supervisor'){renderSupervisor();renderWeekDs()}});
-(async()=>{try{db=await openDB();await seedIfNeeded();updateCloudUi();await refreshAll();updateCloudUi()}catch(e){dbStatus.textContent='Erro no banco';alert(e.message)}})();
+(async()=>{try{showPasswordRecoveryIfNeeded();db=await openDB();await seedIfNeeded();updateCloudUi();await refreshAll();updateCloudUi()}catch(e){dbStatus.textContent='Erro no banco';alert(e.message)}})();
 </script>
 </body>
 </html>
