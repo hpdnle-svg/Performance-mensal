@@ -723,7 +723,7 @@ async function renderSupervisor(){
 
 async function drawSupervisorWeekImage(){
  const data=await weekData();if(!data.sup||!data.start){alert('Selecione um supervisor e uma semana.');return}
- const W=1700,left=45,top=40,rowH=42,headerH=180,tableY=190,colBase=220,colW=175,avgW=190;
+ const W=1860,left=45,top=40,rowH=42,headerH=180,tableY=190,colBase=220,colW=160,avgW=190;
  const H=Math.max(620,tableY+82+data.bases.length*rowH+70);
  const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
  ctx.fillStyle='#f8fbfa';ctx.fillRect(0,0,W,H);
@@ -734,7 +734,7 @@ async function drawSupervisorWeekImage(){
 
  let x=left;ctx.fillStyle='#4f8eb5';ctx.fillRect(x,tableY,colBase,62);ctx.fillStyle='#fff';ctx.font='bold 15px Segoe UI';ctx.fillText('BASE',x+12,tableY+38);x+=colBase;
  data.dates.forEach((d,i)=>{ctx.fillStyle='#0f6792';ctx.fillRect(x,tableY,colW,62);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 15px Segoe UI';ctx.fillText(d.slice(8,10)+'/'+d.slice(5,7),x+colW/2,tableY+26);ctx.font='12px Segoe UI';ctx.fillText(weekdayPt(i),x+colW/2,tableY+47);x+=colW});
- ctx.fillStyle='#4f8eb5';ctx.fillRect(x,tableY,avgW,62);ctx.fillStyle='#fff';ctx.font='bold 15px Segoe UI';ctx.fillText('CONSOLIDADO',x+avgW/2,tableY+26);ctx.font='12px Segoe UI';ctx.fillText('SEMANA',x+avgW/2,tableY+47);ctx.textAlign='left';
+ ['D0','D0 + D1'].forEach(label=>{ctx.fillStyle='#4f8eb5';ctx.fillRect(x,tableY,avgW,62);ctx.fillStyle='#fff';ctx.font='bold 15px Segoe UI';ctx.fillText('CONSOLIDADO '+label,x+avgW/2,tableY+26);ctx.font='12px Segoe UI';ctx.fillText('SEMANA',x+avgW/2,tableY+47);x+=avgW});ctx.textAlign='left';
 
  let y=tableY+62;
  function fillVal(px,pw,v){
@@ -743,7 +743,7 @@ async function drawSupervisorWeekImage(){
  }
  data.bases.forEach(b=>{
    x=left;ctx.fillStyle='#eef6f2';ctx.fillRect(x,y,colBase,rowH);ctx.strokeStyle='#b8cac4';ctx.strokeRect(x,y,colBase,rowH);ctx.fillStyle='#17382f';ctx.font='bold 14px Segoe UI';ctx.fillText(b.ds,x+12,y+27);x+=colBase;
-   b.vals.forEach(v=>{fillVal(x,colW,v);x+=colW});fillVal(x,avgW,b.avg);y+=rowH;
+   b.vals.forEach(v=>{fillVal(x,colW,v);x+=colW});fillVal(x,avgW,b.agg.received>0?b.agg.d0Pct:null);x+=avgW;fillVal(x,avgW,b.agg.received>0?b.agg.d01Pct:null);y+=rowH;
  });
  ctx.fillStyle='#17382f';ctx.font='13px Segoe UI';ctx.fillText('Vermelho: 0–79,99%   |   Amarelo: 80–89,99%   |   Verde: 90–100%',left,y+38);
  const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`Semana_Supervisor_${data.sup.replace(/\s+/g,'_')}_${data.start}.png`;a.click();
