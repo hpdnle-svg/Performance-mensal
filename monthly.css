@@ -1,0 +1,42 @@
+body.v10 {background:#edf3fb!important;color:#08275d!important}
+body.v10 .topbar {background:linear-gradient(110deg,#03439b,#0865d9)!important;border-color:#176fe0!important;border-radius:18px!important}
+body.v10 .topbar h1 {color:white!important;font-size:clamp(24px,3vw,40px)!important}
+body.v10 .topbar .subtitle,body.v10 .topbar .header-meta,body.v10 .brand-lockup {color:#fff!important}
+body.v10 .view-tab {background:#06448d!important;color:#fff!important;border-color:#1261ba!important}
+body.v10 .view-tab.active {background:#287cff!important;box-shadow:0 5px 14px #237aff55!important}
+body.v10 .filters {background:#e5eff8!important;border-color:#d4e2f3!important}
+body.v10 .panel {box-shadow:0 5px 18px #0c3d7c0c!important;border-radius:16px!important}
+body.v10 .kpi-card {border-top:5px solid #237aff!important;box-shadow:0 5px 18px #0c3d7c14!important}
+body.v10 .kpi-card.success {border-top-color:#00c66a!important}
+body.v10 .kpi-card.route {border-top-color:#ffca28!important}
+body.v10 .kpi-card.warning {border-top-color:#ff6330!important}
+body.v10 .kpi-card.performance-red {border-top-color:#ff254e!important}
+body.v10 .kpi-card.performance-yellow {border-top-color:#ffca28!important}
+body.v10 .kpi-card.performance-green {border-top-color:#00c66a!important}
+body.v10 .monthly-controls {display:flex!important;flex-wrap:wrap;align-items:end;gap:14px;margin:0 0 16px}
+.monthly-controls input,.monthly-controls select {padding:10px;border:1px solid #c8d8ed;border-radius:7px;color:#08275d;background:white;min-height:42px}
+body.v10 #availableDays {padding:0 20px 18px;color:#085cc8;font-weight:700;overflow-wrap:anywhere}
+body.v10 #historyInfo {font-size:13px;color:#174675}
+body.v10 .data-table th {background:#e4edff!important;color:#08275d!important}
+body.v10 .data-table td {color:#153d72!important}
+body.v10 .data-table tbody tr:nth-child(even) {background:#f0f5ff!important}
+body.v10 .panel h2 {color:#08275d!important}
+@media(max-width:700px){.monthly-controls .filter-field{width:100%}.monthly-controls input,.monthly-controls select{width:100%}}
+html body.v9.v10 #dashboardView>.panel {min-height:0!important;margin-bottom:16px!important;background:#fff!important}
+html body.v9.v10 #dashboardView>.kpi-grid {gap:14px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.kpi-card {border-radius:14px!important;border:1px solid #d8e3f1!important;border-top:5px solid #237aff!important;background:white!important;padding:16px!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.success {border-top-color:#00c66a!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.route {border-top-color:#ffca28!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.warning {border-top-color:#ff6330!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.performance-red {border-top-color:#ff254e!important;background:#fff0f3!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.performance-yellow {border-top-color:#ffca28!important;background:#fff9dd!important}
+html body.v9.v10 #dashboardView>.kpi-grid>.performance-green {border-top-color:#00c66a!important;background:#e9fff4!important}
+html body.v9.v10 #dashboardView>.chart-grid {gap:16px!important;background:transparent!important;border:0!important;box-shadow:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html body.v9.v10 #dashboardView>.chart-grid>.panel {background:#fff!important;border:1px solid #d8e3f1!important}
+html body.v9.v10 .view-tab.active {color:#fff!important}
+@media(max-width:900px){html body.v9.v10 #dashboardView>.chart-grid{grid-template-columns:1fr!important}}
+@media(max-width:900px){html body.v9.v10 #dashboardView .panel,html body.v9.v10 #dashboardView .chart-wrap{min-width:0!important;width:100%!important}html body.v9.v10 .table-wrap{max-width:100%;overflow-x:auto}html body.v9.v10 .view-tabs{overflow-x:auto!important}}
+html body.v9.v10 #performanceCard.performance-red strong {color:#df1940!important}
+html body.v9.v10 #performanceCard.performance-yellow strong {color:#a56b00!important}
+html body.v9.v10 #performanceCard.performance-green strong {color:#00864d!important}
+

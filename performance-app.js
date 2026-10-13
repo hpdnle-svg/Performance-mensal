@@ -1,0 +1,1026 @@
+const FIELD_ALIASES = {
+  tracking: ["Número da Etiqueta", "Numero da Etiqueta", "Tracking Number", "Waybill", "AWB"],
+  status: ["Último status", "Ultimo status", "Status"],
+  base: ["Última estação de leitura", "Ultima estação de leitura", "Ultima estacao de leitura"],
+  driver: ["Motorista", "Nome do Motorista de Coleta"],
+  dsp: ["Fornecedor do condutor", "Kwai Vendedor da última milha"],
+  occurrenceType: ["Último tipo de insucesso", "Ultimo tipo de insucesso"],
+  occurrenceReason: ["Último motivo do insucesso", "Ultimo motivo do insucesso"],
+  deliveryTime: ["Horário de entrega", "Horario de entrega", "Tempo de entrega"],
+  createdTime: ["Hora de Criação", "Hora de Criacao"],
+  lastReadTime: ["Horário da última leitura", "Horario da ultima leitura"]
+};
+
+// MAPA OFICIAL BASE → SUPERVISOR
+const BASE_SUPERVISORS = {
+  "DS CTI": "Alex Dantas Marçal",
+  "DS ITE": "Alex Dantas Marçal",
+  "DS SRQ": "Alex Dantas Marçal",
+  "DS JDA": "Alex Dantas Marçal",
+  "DS BIN": "Alex Dantas Marçal",
+  "DS PQP": "Alex Dantas Marçal",
+  "DS JPL": "Alex Dantas Marçal",
+  "DS BJP": "Alex Gomes da Silva Cunha",
+  "DS MSL": "Alex Gomes da Silva Cunha",
+  "DS PDR": "Alex Gomes da Silva Cunha",
+  "DS SCM": "Alex Gomes da Silva Cunha",
+  "DS TPR": "Alex Gomes da Silva Cunha",
+  "DS SRG": "Alex Gomes da Silva Cunha",
+  "DS SCR": "Alex Gomes da Silva Cunha",
+  "DS SJO": "Alex Gomes da Silva Cunha",
+  "DS ATB": "Alex Gomes da Silva Cunha",
+  "DS ARO": "Alex Gomes da Silva Cunha",
+  "DS JSC": "Alex Gomes da Silva Cunha",
+  "DS SDS": "Alex Gomes da Silva Cunha",
+  "DS ADL": "Alex Gomes da Silva Cunha",
+  "DS NOV": "Andre Luis Silveira Pinheiro",
+  "DS CPQ": "Andre Luis Silveira Pinheiro",
+  "DS CPX": "Andre Luis Silveira Pinheiro",
+  "DS HOT": "Andre Luis Silveira Pinheiro",
+  "DS CIP": "Andre Luis Silveira Pinheiro",
+  "DS SJP": "Bruno Roberto de Assis",
+  "DS CTD": "Bruno Roberto de Assis",
+  "DS VOT": "Bruno Roberto de Assis",
+  "DS BRT": "Bruno Roberto de Assis",
+  "DS JAL": "Bruno Roberto de Assis",
+  "DS SFS": "Bruno Roberto de Assis",
+  "DS SRP": "Bruno Roberto de Assis",
+  "DS MSO": "Bruno Roberto de Assis",
+  "DS FDL": "Bruno Roberto de Assis",
+  "DS CUI": "Bruno Souza Da Silva",
+  "DS BER": "Bruno Souza Da Silva",
+  "DS CPB": "Bruno Souza Da Silva",
+  "DS CPC": "Bruno Souza Da Silva",
+  "DS MLV": "Bruno Souza Da Silva",
+  "DS OCO": "Bruno Souza Da Silva",
+  "DS OSS": "Bruno Souza Da Silva",
+  "DS JER": "Bruno Souza Da Silva",
+  "DS AMN": "Carlos Augusto Oliveira Teixeira",
+  "DS CBL": "Carlos Augusto Oliveira Teixeira",
+  "DS GJU": "Carlos Augusto Oliveira Teixeira",
+  "DS GAU": "Carlos Augusto Oliveira Teixeira",
+  "DS SBB": "Carlos Augusto Oliveira Teixeira",
+  "DS CSA": "Carlos Augusto Oliveira Teixeira",
+  "DS SBC": "Carlos Augusto Oliveira Teixeira",
+  "DS DDE": "Carlos Augusto Oliveira Teixeira",
+  "DS FRZ": "Cassio Cesar Ferreira",
+  "DS MOG": "Cassio Cesar Ferreira",
+  "DS MGZ": "Cassio Cesar Ferreira",
+  "DS ARJ": "Cassio Cesar Ferreira",
+  "DS IQQ": "Cassio Cesar Ferreira",
+  "DS RCA": "Cassio Cesar Ferreira",
+  "DS MGC": "Cassio Cesar Ferreira",
+  "DS GNZ": "Cassio Cesar Ferreira",
+  "DS SUZ": "Cassio Cesar Ferreira",
+  "DS SBD": "Daniel Coutinho",
+  "DS AGFI": "Daniel Coutinho",
+  "DS JDP": "Daniel Coutinho",
+  "DS BLV": "Daniel Coutinho",
+  "DS LBD": "Daniel Coutinho",
+  "DS ACM": "Daniel Coutinho",
+  "DS BCC": "Daniel Coutinho",
+  "DS SVT": "Daniel Rubio Tavares",
+  "DS LSV": "Daniel Rubio Tavares",
+  "DS PGD": "Daniel Rubio Tavares",
+  "DS IGP": "Daniel Rubio Tavares",
+  "DS RST": "Daniel Rubio Tavares",
+  "DS SAS": "Daniel Rubio Tavares",
+  "DS API": "Daniel Rubio Tavares",
+  "DS FVC": "Dennis Pereira dos Santos",
+  "DS STD": "Dennis Pereira dos Santos",
+  "DS AET": "Dennis Pereira dos Santos",
+  "DS MAU": "Dennis Pereira dos Santos",
+  "DS RBI": "Dennis Pereira dos Santos",
+  "DS JVC": "Dennis Pereira dos Santos",
+  "DS SPL": "Dennis Pereira dos Santos",
+  "DS GRUI": "Eduardo Mendes Rocha",
+  "DS GUA": "Eduardo Mendes Rocha",
+  "DS GOS": "Eduardo Mendes Rocha",
+  "DS GLS": "Eduardo Mendes Rocha",
+  "DS GHO": "Eduardo Mendes Rocha",
+  "DS STL": "Eduardo Mendes Rocha",
+  "DS SAM": "Eduardo Mendes Rocha",
+  "DS SVL": "Eduardo Mendes Rocha",
+  "DS VCP": "Eduardo Mendes Rocha",
+  "DS IGA": "Felippe Campos Vieira da Silva",
+  "DS SRO": "Felippe Campos Vieira da Silva",
+  "DS TAI": "Felippe Campos Vieira da Silva",
+  "DS VTT": "Felippe Campos Vieira da Silva",
+  "DS BTV": "Felippe Campos Vieira da Silva",
+  "DS CQL": "Felippe Campos Vieira da Silva",
+  "DS CBO": "Felippe Campos Vieira da Silva",
+  "DS SAB": "Felippe Campos Vieira da Silva",
+  "DS MGN": "Gustavo Vilares de Souza",
+  "DS LIM": "Gustavo Vilares de Souza",
+  "DS CNC": "Gustavo Vilares de Souza",
+  "DS RCL": "Gustavo Vilares de Souza",
+  "DS AAR": "Gustavo Vilares de Souza",
+  "DS PIX": "Gustavo Vilares de Souza",
+  "DS PIB": "Gustavo Vilares de Souza",
+  "DS AMR": "Gustavo Vilares de Souza",
+  "DS SMO": "Gustavo Vilares de Souza",
+  "DS JIR": "Hebert Ribeiro da Silva Santos",
+  "DS VLM": "Hebert Ribeiro da Silva Santos",
+  "DS PSC": "Hebert Ribeiro da Silva Santos",
+  "DS MBI": "Hebert Ribeiro da Silva Santos",
+  "DS IPR": "Hebert Ribeiro da Silva Santos",
+  "DS JIP": "Hebert Ribeiro da Silva Santos",
+  "DS MTS": "Hebert Ribeiro da Silva Santos",
+  "DS VLB": "Hebert Ribeiro da Silva Santos",
+  "DS VRE": "Hebert Ribeiro da Silva Santos",
+  "DS TAMI": "Jefferson Silva Trevizan",
+  "DS ITC": "Jefferson Silva Trevizan",
+  "DS PQR": "Jefferson Silva Trevizan",
+  "DS EAR": "Jefferson Silva Trevizan",
+  "DS JRF": "Jefferson Silva Trevizan",
+  "DS GPG": "Jefferson Silva Trevizan",
+  "DS TAS": "Jefferson Silva Trevizan",
+  "DS JCT": "Jefferson Silva Trevizan",
+  "DS JAU": "José Henrique",
+  "DS BUXI": "José Henrique",
+  "DS GRS": "José Henrique",
+  "DS AVR": "José Henrique",
+  "DS AVE": "José Henrique",
+  "DS LNS": "José Henrique",
+  "DS MRA": "José Henrique",
+  "DS AIF": "José Henrique",
+  "DS PRJ": "José Henrique",
+  "DS BTU": "José Henrique",
+  "DS IPA": "José Henrique",
+  "DS ASI": "José Henrique",
+  "DS PDN": "José Henrique",
+  "DS ORH": "José Henrique",
+  "DS ARU": "Jose Lucas de Freitas Carvalho",
+  "DS PSD": "Jose Lucas de Freitas Carvalho",
+  "DS ADD": "Jose Lucas de Freitas Carvalho",
+  "DS IRP": "Jose Lucas de Freitas Carvalho",
+  "DS VTP": "Jose Lucas de Freitas Carvalho",
+  "DS PNP": "Jose Lucas de Freitas Carvalho",
+  "DS BIG": "Jose Lucas de Freitas Carvalho",
+  "DS AFL": "Jose Lucas de Freitas Carvalho",
+  "DS VAR": "Leonardo Oliveira da Silva Bezerra",
+  "DS FGO": "Leonardo Oliveira da Silva Bezerra",
+  "DS WSC": "Leonardo Oliveira da Silva Bezerra",
+  "DS VRI": "Leonardo Oliveira da Silva Bezerra",
+  "DS CDR": "Leonardo Oliveira da Silva Bezerra",
+  "DS SVM": "Leonardo Oliveira da Silva Bezerra",
+  "DS JANI": "Leonardo Oliveira da Silva Bezerra",
+  "DS JDS": "Leonardo Oliveira da Silva Bezerra",
+  "DS CTT": "Nelson de Siqueira",
+  "DS UBT": "Nelson de Siqueira",
+  "DS GRT": "Nelson de Siqueira",
+  "DS GTT": "Nelson de Siqueira",
+  "DS TBT": "Nelson de Siqueira",
+  "DS CZR": "Nelson de Siqueira",
+  "DS CPJ": "Nelson de Siqueira",
+  "DS PMB": "Nelson de Siqueira",
+  "DS CTTI": "Nelson de Siqueira",
+  "DS ILB": "Nelson de Siqueira",
+  "DS FRC": "Renan Burger da Silva",
+  "DS RPT": "Renan Burger da Silva",
+  "DS RRA": "Renan Burger da Silva",
+  "DS ORL": "Renan Burger da Silva",
+  "DS IVV": "Renan Burger da Silva",
+  "DS STZ": "Renan Burger da Silva",
+  "DS RBT": "Renan Burger da Silva",
+  "DS BBD": "Renan Burger da Silva",
+  "DS CPT": "Renan Burger da Silva",
+  "DS RIBI": "Renan Burger da Silva",
+  "DS CJR": "Renan Burger da Silva",
+  "DS MCC": "Renan Burger da Silva",
+  "DS VDS": "Renan Burger da Silva",
+  "DS OCC": "Renan Burger da Silva",
+  "DS BTA": "Renan Burger da Silva",
+  "DS SBV": "Renan Burger da Silva",
+  "DS CBV": "Valber Da Silva Santos",
+  "DS IVA": "Valber Da Silva Santos",
+  "DS TBA": "Valber Da Silva Santos",
+  "DS VZP": "Valber Da Silva Santos",
+  "DS JNI": "Valber Da Silva Santos",
+  "DS FCR": "Valber Da Silva Santos",
+  "DS IND": "Valber Da Silva Santos",
+  "DS IDB": "Valber Da Silva Santos",
+  "DS IDT": "Valber Da Silva Santos",
+  "DS JDI": "Valber Da Silva Santos",
+  "DS SLT": "Valber Da Silva Santos",
+  "DS MRP": "Valber Da Silva Santos",
+  "DS JBC": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS PSS": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS SCL": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS AQR": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS MAT": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS IIG": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS MTL": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS GRB": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS TTG": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS LTF": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS DVD": "Willian Gabriel Guedes de Brito Magalhaes",
+  "DS PTF": "Willian Gabriel Guedes de Brito Magalhaes"
+};
+
+let rawRows = [];
+let filteredRows = [];
+let charts = {};
+let selectedBases = new Set();
+let activeView = "dashboard";
+
+const $ = id => document.getElementById(id);
+const normalize = v => String(v ?? "").trim();
+const lower = v => normalize(v).toLocaleLowerCase("pt-BR");
+
+Chart.defaults.color = "#08275d";
+Chart.defaults.borderColor = "rgba(210,230,248,.28)";
+Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+Chart.defaults.font.size = 14;
+Chart.defaults.plugins.legend.labels.color = "#08275d";
+Chart.defaults.plugins.legend.labels.font = { size: 14, weight: "700" };
+Chart.defaults.plugins.tooltip.backgroundColor = "#071F3A";
+Chart.defaults.plugins.tooltip.titleColor = "#FFFFFF";
+Chart.defaults.plugins.tooltip.bodyColor = "#EAF4FF";
+Chart.defaults.plugins.tooltip.borderColor = "rgba(126,180,233,.55)";
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+
+
+function resolveColumn(headers, aliases) {
+  const exact = aliases.find(alias => headers.includes(alias));
+  if (exact) return exact;
+  const map = new Map(headers.map(h => [lower(h), h]));
+  for (const alias of aliases) if (map.has(lower(alias))) return map.get(lower(alias));
+  return null;
+}
+function buildFieldMap(rows) {
+  const headers = rows.length ? Object.keys(rows[0]) : [];
+  return Object.fromEntries(Object.entries(FIELD_ALIASES).map(([k,a]) => [k, resolveColumn(headers,a)]));
+}
+function standardize(rows) {
+  const f = buildFieldMap(rows);
+  return rows.filter(row => Object.values(row).some(v => normalize(v) !== "")).map((row,index)=>({
+    _row:index+2,
+    tracking:normalize(row[f.tracking]),
+    status:normalize(row[f.status]),
+    base:normalize(row[f.base]),
+    driver:normalize(row[f.driver]),
+    dsp:normalize(row[f.dsp]),
+    occurrenceType:normalize(row[f.occurrenceType]),
+    occurrenceReason:normalize(row[f.occurrenceReason]),
+    deliveryTime:row[f.deliveryTime] ?? "",
+    createdTime:row[f.createdTime] ?? "",
+    lastReadTime:row[f.lastReadTime] ?? "",
+    original:row
+  })).filter(r=>r.tracking || r.status || r.base);
+}
+function normalizeStatus(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+const isDelivered = r => normalizeStatus(r.status) === "entregue";
+const isRoute = r => normalizeStatus(r.status).includes("rota de entrega");
+const pctNum = (v,t) => t ? (v/t*100) : 0;
+const pct = (v,t) => `${pctNum(v,t).toFixed(2).replace(".",",")}%`;
+const supervisorFor = base => (base && BASE_SUPERVISORS[base]) ? BASE_SUPERVISORS[base] : "Não definido";
+const uniqueSorted = (rows,key) => [...new Set(rows.map(r=>r[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+
+function escapeHtml(v) {
+  return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function countBy(rows,key) {
+  const m = new Map();
+  for (const r of rows) {
+    const v = normalize(r[key]) || "(vazio)";
+    m.set(v,(m.get(v)||0)+1);
+  }
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+function fillSelect(id, values, firstLabel) {
+  const el=$(id), old=el.value;
+  el.innerHTML=`<option value="">${firstLabel}</option>`+values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+  if(values.includes(old)) el.value=old;
+}
+function populateFilters() {
+  const bases = uniqueSorted(rawRows,"base");
+  const supervisors = [...new Set(
+    bases.map(base => supervisorFor(base)).filter(name => name && name !== "Não definido")
+  )].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+
+  fillSelect("filterSupervisor", supervisors, "Todos os supervisores");
+
+  selectedBases = new Set(bases);
+  renderBaseMultiSelect(bases);
+
+  fillSelect("printBaseSelect", bases, "Selecione uma base");
+  fillSelect("driverBaseSelect", bases, "Selecione uma base");
+  fillSelect("awbBaseSelect", bases, "Selecione uma base");
+
+  fillSelect("filterDsp", uniqueSorted(rawRows,"dsp"), "Todos os DSPs");
+  fillSelect("filterDriver", uniqueSorted(rawRows,"driver"), "Todos os motoristas");
+  fillSelect("filterStatus", uniqueSorted(rawRows,"status"), "Todos os status");
+}
+
+function basesForSupervisor(supervisor) {
+  const allBases = uniqueSorted(rawRows, "base");
+  if (!supervisor) return allBases;
+  return allBases.filter(base => supervisorFor(base) === supervisor);
+}
+
+function renderBaseMultiSelect(availableBases = null) {
+  const supervisor = $("filterSupervisor")?.value || "";
+  const bases = availableBases || basesForSupervisor(supervisor);
+  const list = $("baseCheckboxList");
+  if (!list) return;
+
+  // Remove bases no longer available under current supervisor.
+  selectedBases = new Set([...selectedBases].filter(base => bases.includes(base)));
+
+  list.innerHTML = bases.map(base => `
+    <label class="base-check">
+      <input type="checkbox" value="${escapeHtml(base)}" ${selectedBases.has(base) ? "checked" : ""}>
+      <span>${escapeHtml(base)}</span>
+      <span class="supervisor-badge">${escapeHtml(supervisorFor(base))}</span>
+    </label>
+  `).join("");
+
+  list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener("change", () => {
+      if (cb.checked) selectedBases.add(cb.value);
+      else selectedBases.delete(cb.value);
+      updateBaseMultiLabel(bases);
+      syncDriverFiltersFromCurrentScope();
+      applyFilters();
+    });
+  });
+
+  updateBaseMultiLabel(bases);
+}
+
+function updateBaseMultiLabel(availableBases = null) {
+  const supervisor = $("filterSupervisor")?.value || "";
+  const bases = availableBases || basesForSupervisor(supervisor);
+  const count = [...selectedBases].filter(base => bases.includes(base)).length;
+  const label = $("baseMultiLabel");
+  if (!label) return;
+
+  if (!bases.length) {
+    label.textContent = "Nenhuma base";
+  } else if (count === 0) {
+    label.textContent = "Nenhuma base selecionada";
+  } else if (count === bases.length) {
+    label.textContent = supervisor ? `Todas (${count})` : `Todas as bases (${count})`;
+  } else if (count === 1) {
+    label.textContent = [...selectedBases].find(base => bases.includes(base)) || "1 base";
+  } else {
+    label.textContent = `${count} bases selecionadas`;
+  }
+}
+
+
+function currentSupervisor() {
+  return $("filterSupervisor")?.value || "";
+}
+
+function visibleBasesForSupervisor() {
+  return basesForSupervisor(currentSupervisor());
+}
+
+function syncDependentBaseSelectors() {
+  const bases = visibleBasesForSupervisor();
+
+  const validSelected = [...selectedBases].filter(base => bases.includes(base));
+  selectedBases = new Set(validSelected.length ? validSelected : bases);
+  renderBaseMultiSelect(bases);
+
+  fillSelect("printBaseSelect", bases, "Selecione uma base");
+  fillSelect("driverBaseSelect", bases, "Selecione uma base");
+  fillSelect("awbBaseSelect", bases, "Selecione uma base");
+
+  if ($("awbBaseSelect").value && !bases.includes($("awbBaseSelect").value)) {
+    $("awbBaseSelect").value = "";
+    syncAwbDriverSelect("", false);
+  }
+}
+
+function syncDriverFiltersFromCurrentScope() {
+  const supervisor = currentSupervisor();
+  const rows = rawRows.filter(r =>
+    (!supervisor || supervisorFor(r.base) === supervisor) &&
+    selectedBases.has(r.base)
+  );
+
+  fillSelect("filterDriver", uniqueSorted(rows, "driver"), "Todos os motoristas");
+  fillSelect("filterDsp", uniqueSorted(rows, "dsp"), "Todos os DSPs");
+  fillSelect("filterStatus", uniqueSorted(rows, "status"), "Todos os status");
+}
+
+function applyFilters() {
+  const f = {
+    supervisor: $("filterSupervisor")?.value || "",
+    dsp: $("filterDsp").value,
+    driver: $("filterDriver").value,
+    status: $("filterStatus").value
+  };
+
+  filteredRows = rawRows.filter(r =>
+    (!f.supervisor || supervisorFor(r.base) === f.supervisor) &&
+    (selectedBases.size === 0 ? false : selectedBases.has(r.base)) &&
+    (!f.dsp || r.dsp === f.dsp) &&
+    (!f.driver || r.driver === f.driver) &&
+    (!f.status || r.status === f.status)
+  );
+
+  $("supervisorName").textContent = f.supervisor || "Regional SP";
+  renderDashboard();
+
+  // Mantém a aba AWBs sincronizada quando existe somente uma base ativa.
+  const preferred = preferredBaseFromMainPanel();
+  if (preferred && $("awbBaseSelect")) {
+    $("awbBaseSelect").value = preferred;
+    syncAwbDriverSelect(preferred, false);
+  }
+}
+function destroyChart(name){ if(charts[name]){charts[name].destroy();delete charts[name];} }
+
+function renderKpis() {
+  const total = filteredRows.length;
+  const delivered = filteredRows.filter(isDelivered).length;
+  const route = filteredRows.filter(isRoute).length;
+  const notDelivered = Math.max(0, total - delivered);
+  const performance = pctNum(delivered, total);
+
+  $("kpiTotal").textContent = total.toLocaleString("pt-BR");
+  $("kpiDelivered").textContent = delivered.toLocaleString("pt-BR");
+  $("kpiRoute").textContent = route.toLocaleString("pt-BR");
+  $("kpiPending").textContent = notDelivered.toLocaleString("pt-BR");
+
+  $("kpiDeliveredPct").textContent = pct(delivered, total);
+  $("kpiRoutePct").textContent = pct(route, total);
+  $("kpiPendingPct").textContent = pct(notDelivered, total);
+  $("kpiPerformance").textContent = `${performance.toFixed(2).replace(".", ",")}%`;
+
+  const card = $("performanceCard");
+  card.classList.remove("performance-red","performance-yellow","performance-green");
+
+  if (performance < 80) {
+    card.classList.add("performance-red");
+  } else if (performance < 93) {
+    card.classList.add("performance-yellow");
+  } else {
+    card.classList.add("performance-green");
+  }
+}
+function renderBasePerformanceChart() {
+  destroyChart("basePerformance");
+  const bases=countBy(filteredRows.filter(r=>r.base),"base").slice(0,12).map(x=>x[0]);
+  $("baseCount").textContent=`${uniqueSorted(filteredRows,"base").length} bases`;
+  const delivered=bases.map(b=>filteredRows.filter(r=>r.base===b&&isDelivered(r)).length);
+  const notDelivered=bases.map(b=>filteredRows.filter(r=>r.base===b&&!isDelivered(r)).length);
+  charts.basePerformance=new Chart($("chartBasePerformance"),{
+    type:"bar",
+    data:{labels:bases,datasets:[
+      {label:"Entregues",data:delivered,backgroundColor:"#22D49B",borderColor:"#78F0C7",borderWidth:1.5,borderRadius:7},
+      {label:"Não entregues",data:notDelivered,backgroundColor:"#FF9F43",borderColor:"#FFD08A",borderWidth:1.5,borderRadius:7}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{
+      x:{stacked:false,grid:{display:false}},
+      y:{stacked:false,beginAtZero:true,grid:{color:"rgba(8,39,93,.12)"}}
+    }}
+  });
+}
+function renderTopBasesRanking() {
+  const grouped = new Map();
+
+  for (const r of filteredRows.filter(r => r.base)) {
+    if (!grouped.has(r.base)) grouped.set(r.base, {total:0, delivered:0, route:0});
+    const g = grouped.get(r.base);
+    g.total++;
+    if (isDelivered(r)) g.delivered++;
+    if (isRoute(r)) g.route++;
+  }
+
+  const ranking = [...grouped.entries()]
+    .map(([base,g]) => ({
+      base,
+      total:g.total,
+      delivered:g.delivered,
+      route:g.route,
+      completion:pctNum(g.delivered,g.total)
+    }))
+    .sort((a,b) => b.completion - a.completion || b.delivered - a.delivered || a.base.localeCompare(b.base,"pt-BR"))
+    .slice(0,10);
+
+  const tbody = $("topBasesRanking");
+  if (!tbody) return;
+
+  if (!ranking.length) {
+    tbody.innerHTML = `<tr><td colspan="5">Nenhuma base para exibir.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = ranking.map((r,i) => {
+    let perfClass = "rank-red";
+    if (r.completion >= 93) perfClass = "rank-green";
+    else if (r.completion >= 80) perfClass = "rank-yellow";
+
+    return `
+      <tr>
+        <td>${i+1}</td>
+        <td>${escapeHtml(r.base)}</td>
+        <td>${r.delivered}</td>
+        <td>${r.route}</td>
+        <td><span class="rank-performance ${perfClass}">${r.completion.toFixed(2).replace(".",",")}%</span></td>
+      </tr>
+    `;
+  }).join("");
+}
+function hourFromValue(v) {
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v)) return v.getHours();
+  const s=String(v);
+  const match=s.match(/(?:\s|T)(\d{1,2}):(\d{2})(?::\d{2})?/);
+  if(match) return Number(match[1]);
+  const d=new Date(v);
+  return isNaN(d)?null:d.getHours();
+}
+function renderHourlyChart() {
+  destroyChart("hourly");
+  const delivered=filteredRows.filter(isDelivered);
+  const hours=Array.from({length:24},(_,i)=>i);
+  const values=hours.map(h=>delivered.filter(r=>hourFromValue(r.deliveryTime)===h).length);
+  const first=values.findIndex(v=>v>0);
+  let last=values.length-1; while(last>=0 && values[last]===0) last--;
+  const start=first>=0?Math.max(0,first-1):0, end=last>=0?Math.min(23,last+1):23;
+  const labels=hours.slice(start,end+1).map(h=>`${String(h).padStart(2,"0")}:00`);
+  const data=values.slice(start,end+1);
+  $("hourlyTotal").textContent=`${data.reduce((a,b)=>a+b,0)} baixas`;
+  charts.hourly=new Chart($("chartHourly"),{
+    type:"line",
+    data:{labels,datasets:[{label:"Baixas",data,fill:true,backgroundColor:"rgba(46,144,255,.30)",borderColor:"#46A3FF",borderWidth:3.5,tension:.28,pointRadius:5,pointHoverRadius:7,pointBackgroundColor:"#9FD0FF",pointBorderColor:"#FFFFFF",pointBorderWidth:1.5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} baixas`}}
+    },scales:{
+      x:{grid:{display:false}},
+      y:{beginAtZero:true,ticks:{precision:0},grid:{color:"rgba(8,39,93,.12)"}}
+    }}
+  });
+}
+function renderOccurrences() {
+  const counts=new Map();
+  for(const r of filteredRows.filter(r=>r.occurrenceReason||r.occurrenceType)){
+    const k=r.occurrenceReason||r.occurrenceType; counts.set(k,(counts.get(k)||0)+1);
+  }
+  const data=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8), el=$("occurrences");
+  if(!data.length){el.className="ranking empty-state";el.textContent="Nenhuma ocorrência encontrada.";return;}
+  el.className="ranking";
+  el.innerHTML=data.map(([n,v])=>`<div class="rank-row"><div class="rank-name">${escapeHtml(n)}</div><div class="rank-value">${v}</div></div>`).join("");
+}
+function renderDashboard(){ renderMonthly();renderKpis();renderBasePerformanceChart();renderTopBasesRanking();renderHourlyChart();renderOccurrences(); }
+
+function renderBasePrint(base) {
+  const rows=rawRows.filter(r=>r.base===base), total=rows.length, delivered=rows.filter(isDelivered).length, route=rows.filter(isRoute).length, nd=total-delivered;
+  $("printBaseTitle").textContent=base||"Selecione uma base";
+  $("printBaseSupervisor").textContent=supervisorFor(base);
+  $("printBaseDate").textContent=new Date().toLocaleDateString("pt-BR");
+  $("printBaseTotal").textContent=total;
+  $("printBaseDelivered").textContent=delivered;
+  $("printBaseDeliveredPct").textContent=pct(delivered,total);
+  $("printBaseNotDelivered").textContent=nd;
+  $("printBaseNotDeliveredPct").textContent=pct(nd,total);
+  $("printBaseRoute").textContent=route;
+  const basePerformance=pctNum(delivered,total);
+  $("printBasePerformance").textContent=`${basePerformance.toFixed(2).replace(".",",")}%`;
+  const perfCard=$("printBasePerformanceCard");
+  perfCard.classList.remove("performance-red","performance-yellow","performance-green");
+  perfCard.classList.add(basePerformance < 80 ? "performance-red" : basePerformance < 93 ? "performance-yellow" : "performance-green");
+
+  const statuses=countBy(rows,"status");
+  $("baseStatusTable").innerHTML=statuses.length?statuses.map(([s,n])=>`<tr><td>${escapeHtml(s)}</td><td>${n}</td><td>${pct(n,total)}</td></tr>`).join(""):`<tr><td colspan="3">Selecione uma base</td></tr>`;
+
+  destroyChart("printBaseStatus");
+  charts.printBaseStatus=new Chart($("chartPrintBaseStatus"),{
+    type:"bar",
+    data:{labels:statuses.map(x=>x[0]),datasets:[{label:"Quantidade",data:statuses.map(x=>x[1]),backgroundColor:"rgba(44,125,255,.78)",borderRadius:6}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+      x:{beginAtZero:true,ticks:{precision:0}},y:{grid:{display:false}}
+    }}
+  });
+}
+function renderDriversPrint(base) {
+  const rows=rawRows.filter(r=>r.base===base), total=rows.length, deliveredTotal=rows.filter(isDelivered).length;
+  const grouped=new Map();
+  for(const r of rows.filter(r=>r.driver)){
+    if(!grouped.has(r.driver)) grouped.set(r.driver,{total:0,delivered:0});
+    const g=grouped.get(r.driver); g.total++; if(isDelivered(r)) g.delivered++;
+  }
+  const offenders=[...grouped.entries()].map(([driver,g])=>({
+    driver,total:g.total,delivered:g.delivered,missing:g.total-g.delivered
+  })).filter(x=>x.missing>0).sort((a,b)=>b.missing-a.missing || pctNum(b.missing,b.total)-pctNum(a.missing,a.total));
+
+  $("driverPrintTitle").textContent=base||"Selecione uma base";
+  $("driverPrintSupervisor").textContent=supervisorFor(base);
+  $("driverPrintDate").textContent=new Date().toLocaleDateString("pt-BR");
+  $("offenderCount").textContent=offenders.length;
+  $("offenderMissing").textContent=offenders.reduce((a,b)=>a+b.missing,0);
+  $("offenderDelivered").textContent=deliveredTotal;
+  $("offenderPerformance").textContent=pct(deliveredTotal,total);
+  $("offenderTable").innerHTML=offenders.length?offenders.map((o,i)=>`
+    <tr>
+      <td>${i+1}</td><td>${escapeHtml(o.driver)}</td><td>${o.total}</td><td>${o.delivered}</td>
+      <td>${o.missing}</td><td>${pct(o.missing,o.total)}</td><td>${pct(o.delivered,o.total)}</td>
+    </tr>`).join(""):`<tr><td colspan="7">Nenhum motorista com pendência para a base selecionada.</td></tr>`;
+}
+
+
+function driversForBase(base) {
+  if (!base) return [];
+  return uniqueSorted(rawRows.filter(r => r.base === base && r.driver), "driver");
+}
+
+function syncAwbDriverSelect(base, preserveValue = true) {
+  const select = $("awbDriverSelect");
+  if (!select) return;
+
+  const oldValue = preserveValue ? select.value : "";
+  const drivers = driversForBase(base);
+
+  select.innerHTML = `<option value="">Todos os motoristas da base</option>` +
+    drivers.map(driver => `<option value="${escapeHtml(driver)}">${escapeHtml(driver)}</option>`).join("");
+
+  select.disabled = !base || drivers.length === 0;
+
+  if (preserveValue && drivers.includes(oldValue)) {
+    select.value = oldValue;
+  } else {
+    select.value = "";
+  }
+}
+
+function preferredBaseFromMainPanel() {
+  // Se houver exatamente uma base marcada no filtro principal, usa essa base.
+  const selected = [...selectedBases].filter(Boolean);
+  if (selected.length === 1) return selected[0];
+
+  // Se o supervisor tiver apenas uma base visível/selecionada, também usa.
+  const supervisor = $("filterSupervisor")?.value || "";
+  if (supervisor) {
+    const supervisorBases = selected.filter(base => supervisorFor(base) === supervisor);
+    if (supervisorBases.length === 1) return supervisorBases[0];
+  }
+
+  return "";
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  if (value instanceof Date && !isNaN(value)) {
+    return value.toLocaleString("pt-BR", {
+      day:"2-digit", month:"2-digit", year:"numeric",
+      hour:"2-digit", minute:"2-digit"
+    });
+  }
+  const d = new Date(value);
+  if (!isNaN(d)) {
+    return d.toLocaleString("pt-BR", {
+      day:"2-digit", month:"2-digit", year:"numeric",
+      hour:"2-digit", minute:"2-digit"
+    });
+  }
+  return String(value);
+}
+
+function renderAwbsPending(base, driver = "") {
+  const rowsBase = rawRows.filter(r => r.base === base);
+  const rows = driver ? rowsBase.filter(r => r.driver === driver) : rowsBase;
+
+  const chargeType = $("awbChargeType")?.value || "route";
+  const specificStatus = $("awbSpecificStatus")?.value || "";
+
+  let pendingRows = rows.filter(r => !isDelivered(r));
+  if (chargeType === "route") {
+    pendingRows = rows.filter(isRoute);
+  } else if (chargeType === "notdelivered") {
+    pendingRows = rows.filter(r => !isDelivered(r));
+  } else if (chargeType === "status" && specificStatus) {
+    pendingRows = rows.filter(r => normalizeStatus(r.status) === normalizeStatus(specificStatus));
+  }
+
+  const grouped = new Map();
+  for (const r of pendingRows) {
+    const driverName = r.driver || "Motorista não informado";
+    if (!grouped.has(driverName)) grouped.set(driverName, []);
+    grouped.get(driverName).push(r);
+  }
+
+  const drivers = [...grouped.entries()]
+    .sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "pt-BR"));
+
+  $("awbPrintTitle").textContent = base || "Selecione uma base";
+  $("awbPrintSupervisor").textContent = supervisorFor(base);
+  $("awbPrintDriver").textContent = driver || "Todos";
+  $("awbPrintDate").textContent = new Date().toLocaleDateString("pt-BR");
+
+  $("awbPendingCount").textContent = pendingRows.length;
+  $("awbDriverCount").textContent = drivers.length;
+
+  const el = $("awbPendingList");
+
+  if (!base) {
+    el.innerHTML = '<div class="empty-state">Selecione primeiro uma base. Depois escolha um motorista ou deixe em Todos.</div>';
+    return;
+  }
+
+  if (!pendingRows.length) {
+    el.innerHTML = `<div class="empty-state">Nenhuma AWB pendente${driver ? " para o motorista selecionado" : ""}.</div>`;
+    return;
+  }
+
+  let rowIndex = 1;
+
+  el.innerHTML = `
+    <div class="awb-master-table-wrap">
+      <table class="awb-master-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Motorista</th>
+            <th>AWB</th>
+            <th>Status Atual</th>
+            <th>Data da Última Leitura</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${drivers.map(([driverName, items], driverIndex) => {
+            const sortedItems = items
+              .map(r => ({
+                awb: r.tracking || "(sem AWB)",
+                status: r.status || "(sem status)",
+                lastRead: formatDateTime(r.lastReadTime)
+              }))
+              .sort((a,b) => a.status.localeCompare(b.status, "pt-BR") || a.awb.localeCompare(b.awb, "pt-BR"));
+
+            return `
+              <tr class="awb-driver-group">
+                <td class="awb-driver-number">${driverIndex + 1}</td>
+                <td colspan="3"><strong>${escapeHtml(driverName)}</strong></td>
+                <td><span class="awb-driver-count">${items.length} AWB${items.length === 1 ? "" : "s"}</span></td>
+              </tr>
+              ${sortedItems.map((item, i) => `
+                <tr class="awb-detail-row">
+                  <td>${i + 1}</td>
+                  <td></td>
+                  <td class="awb-code">${escapeHtml(item.awb)}</td>
+                  <td>${escapeHtml(item.status)}</td>
+                  <td>${escapeHtml(item.lastRead || "-")}</td>
+                </tr>
+              `).join("")}
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+document.querySelectorAll(".view-tab").forEach(btn=>btn.addEventListener("click",()=>{
+  syncDependentBaseSelectors();
+  document.querySelectorAll(".view-tab").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  btn.classList.add("active"); activeView=btn.dataset.view;
+  const map={dashboard:"dashboardView",baseprint:"basePrintView",driversprint:"driversPrintView",awbspending:"awbsPendingView"};
+  $(map[activeView]).classList.add("active");
+  if(activeView==="baseprint") renderBasePrint($("printBaseSelect").value);
+  if(activeView==="driversprint") renderDriversPrint($("driverBaseSelect").value);
+  if(activeView==="awbspending") {
+    let base = $("awbBaseSelect").value;
+    const preferred = preferredBaseFromMainPanel();
+
+    if (!base && preferred) {
+      base = preferred;
+      $("awbBaseSelect").value = preferred;
+    }
+
+    syncAwbDriverSelect(base, false);
+    renderAwbsPending(base, $("awbDriverSelect").value);
+  }
+}));
+
+$("fileInput").addEventListener("change",async e=>{
+  const file=e.target.files?.[0]; if(!file)return;
+  try{
+    const buffer=await file.arrayBuffer();
+    const wb=XLSX.read(buffer,{type:"array",cellDates:true});
+    if (!wb.SheetNames || !wb.SheetNames.length) throw new Error("Excel sem planilha válida.");
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+    if (!rows.length) throw new Error("A primeira aba do Excel está vazia.");
+    const reportRows=standardize(rows);
+    if (!reportRows.length || !buildFieldMap(rows).base || !buildFieldMap(rows).status) throw new Error("Relatório sem colunas de Base ou Status.");
+    const date=$("reportDate").value;
+    if (!HistoryStore.validDate(date)) throw new Error("Informe a data do relatório.");
+    if (dailyHistory[date] && !confirm("Já existe um relatório nesta data. Substituir o dia inteiro?")) return;
+    await HistoryStore.put(date, reportRows);
+    dailyHistory[date]=reportRows;
+    refreshMonths(date.slice(0,7));
+    loadMonth();
+    $("lastUpdate").textContent=new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  }catch(err){console.error(err);alert("Não foi possível importar: "+err.message);}
+  finally { e.target.value=""; }
+});
+["filterDsp","filterDriver","filterStatus"].forEach(id => {
+  $(id).addEventListener("change", applyFilters);
+});
+
+$("filterSupervisor").addEventListener("change", () => {
+  const supervisor = $("filterSupervisor").value;
+  const bases = basesForSupervisor(supervisor);
+
+  selectedBases = new Set(bases);
+  syncDependentBaseSelectors();
+  syncDriverFiltersFromCurrentScope();
+
+  $("supervisorName").textContent = supervisor || "Regional SP";
+  applyFilters();
+
+  $("printBaseSelect").value = "";
+  $("driverBaseSelect").value = "";
+  $("awbBaseSelect").value = "";
+  syncAwbDriverSelect("", false);
+});
+
+$("baseMultiToggle").addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("baseMultiSelect").classList.toggle("open");
+});
+
+document.addEventListener("click", (e) => {
+  if (!$("baseMultiSelect").contains(e.target)) {
+    $("baseMultiSelect").classList.remove("open");
+  }
+});
+
+$("selectAllBases").addEventListener("click", () => {
+  const bases = basesForSupervisor($("filterSupervisor").value);
+  selectedBases = new Set(bases);
+  renderBaseMultiSelect(bases);
+  syncDriverFiltersFromCurrentScope();
+  applyFilters();
+});
+
+$("clearAllBases").addEventListener("click", () => {
+  selectedBases.clear();
+  renderBaseMultiSelect(basesForSupervisor($("filterSupervisor").value));
+  syncDriverFiltersFromCurrentScope();
+  applyFilters();
+});
+
+$("clearFilters").addEventListener("click", () => {
+  $("filterSupervisor").value = "";
+  ["filterDsp","filterDriver","filterStatus"].forEach(id => $(id).value = "");
+
+  const bases = uniqueSorted(rawRows,"base");
+  selectedBases = new Set(bases);
+  renderBaseMultiSelect(bases);
+
+  fillSelect("printBaseSelect", bases, "Selecione uma base");
+  fillSelect("driverBaseSelect", bases, "Selecione uma base");
+  fillSelect("awbBaseSelect", bases, "Selecione uma base");
+  syncAwbDriverSelect("", false);
+
+  fillSelect("filterDsp", uniqueSorted(rawRows,"dsp"), "Todos os DSPs");
+  fillSelect("filterDriver", uniqueSorted(rawRows,"driver"), "Todos os motoristas");
+  fillSelect("filterStatus", uniqueSorted(rawRows,"status"), "Todos os status");
+
+  $("supervisorName").textContent = "Regional SP";
+  applyFilters();
+});
+$("printBaseSelect").addEventListener("change",e=>renderBasePrint(e.target.value));
+$("driverBaseSelect").addEventListener("change",e=>renderDriversPrint(e.target.value));
+$("awbBaseSelect").addEventListener("change", e => {
+  const base = e.target.value;
+  const allowed = visibleBasesForSupervisor();
+
+  if (base && !allowed.includes(base)) {
+    e.target.value = "";
+    syncAwbDriverSelect("", false);
+    renderAwbsPending("", "");
+    return;
+  }
+
+  syncAwbDriverSelect(base, false);
+
+  const baseRows = rawRows.filter(r => r.base === base && !isDelivered(r));
+  const statuses = uniqueSorted(baseRows, "status");
+  fillSelect("awbSpecificStatus", statuses, "Selecione um status");
+  $("awbChargeType").disabled = !base;
+  $("awbSpecificStatus").disabled = !base;
+
+  renderAwbsPending(base, "");
+});
+
+$("awbDriverSelect").addEventListener("change", e => {
+  renderAwbsPending($("awbBaseSelect").value, e.target.value);
+});
+async function saveAreaAsPng(areaId, filename) {
+  const area = $(areaId);
+  if (!area) return;
+
+  try {
+    document.body.classList.add("saving-image");
+
+    // Chart.js redraws can be sensitive to capture timing.
+    await new Promise(resolve => setTimeout(resolve, 120));
+
+    const canvas = await html2canvas(area, {
+      backgroundColor: "#07101f",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: area.scrollWidth,
+      windowHeight: area.scrollHeight
+    });
+
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = canvas.toDataURL("image/png", 1.0);
+    link.click();
+  } catch (err) {
+    console.error(err);
+    alert("Não foi possível gerar a imagem. Tente novamente.");
+  } finally {
+    document.body.classList.remove("saving-image");
+  }
+}
+
+$("saveBaseImageBtn").addEventListener("click", () => {
+  const base = $("printBaseSelect").value || "base";
+  saveAreaAsPng("baseCaptureArea", `iMile_Resumo_${base.replaceAll(" ","_")}.png`);
+});
+
+$("saveDriversImageBtn").addEventListener("click", () => {
+  const base = $("driverBaseSelect").value || "base";
+  saveAreaAsPng("driversCaptureArea", `iMile_Ofensores_${base.replaceAll(" ","_")}.png`);
+});
+
+
+
+$("awbChargeType").addEventListener("change", e => {
+  const isSpecific = e.target.value === "status";
+  $("awbSpecificStatusWrap").style.display = isSpecific ? "block" : "none";
+  renderAwbsPending($("awbBaseSelect").value, $("awbDriverSelect").value);
+});
+
+$("awbSpecificStatus").addEventListener("change", () => {
+  renderAwbsPending($("awbBaseSelect").value, $("awbDriverSelect").value);
+});
+
+$("saveAwbsImageBtn").addEventListener("click", () => {
+  const base = $("awbBaseSelect").value || "base";
+  const driver = $("awbDriverSelect").value || "todos";
+  saveAreaAsPng(
+    "awbsCaptureArea",
+    `iMile_AWBs_Pendentes_${base.replaceAll(" ","_")}_${driver.replaceAll(" ","_")}.png`
+  );
+});
+Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: "700" };
+Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
+
+let dailyHistory={};
+function refreshMonths(preferred) {
+  const months=[...new Set(Object.keys(dailyHistory).map(d=>d.slice(0,7)))].sort().reverse();
+  $("filterMonth").innerHTML=months.map(m=>'<option value="'+m+'">'+m.slice(5)+'/'+m.slice(0,4)+'</option>').join('') || '<option value="">Sem histórico</option>';
+  if(months.includes(preferred)) $("filterMonth").value=preferred;
+}
+function loadMonth() {
+  const month=$("filterMonth").value;
+  rawRows=Object.entries(dailyHistory).filter(([d])=>d.startsWith(month)&&month).flatMap(([date,rows])=>rows.map(r=>({...r,reportDate:date})));
+  populateFilters();
+  const supervisor=$("filterSupervisor").value;
+  selectedBases=new Set(basesForSupervisor(supervisor));
+  renderBaseMultiSelect();syncDriverFiltersFromCurrentScope();applyFilters();
+  const days=Object.keys(dailyHistory).filter(d=>d.startsWith(month)&&month).sort();
+  $("availableDays").textContent=days.map(d=>d.slice(8)).join(' • ') || 'Importe um relatório para iniciar.';
+  $("historyInfo").textContent=Object.keys(dailyHistory).length+' dias salvos neste navegador';
+}
+function renderMonthly() {
+  const summarize=(key,id)=>{
+    const groups=new Map();
+    for(const r of filteredRows){const k=key(r);if(!groups.has(k))groups.set(k,{total:0,delivered:0,route:0});const g=groups.get(k);g.total++;g.delivered+=Number(isDelivered(r));g.route+=Number(isRoute(r));}
+    const entries=[...groups].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));
+    $(id).innerHTML=entries.map(([k,g])=>'<tr><td>'+escapeHtml(id==='monthlyDays'?k.slice(8)+'/'+k.slice(5,7):k)+'</td><td>'+g.total+'</td><td>'+g.delivered+'</td><td>'+g.route+'</td><td>'+pct(g.delivered,g.total)+'</td></tr>').join('') || '<tr><td colspan="5">Nenhum registro para os filtros atuais.</td></tr>';
+  };
+  summarize(r=>r.reportDate,'monthlyDays');summarize(r=>supervisorFor(r.base),'monthlySupervisors');
+}
+$("filterMonth").addEventListener('change',loadMonth);
+$("reportDate").value=new Date().toLocaleDateString('sv-SE');
+$("backupHistory").addEventListener('click',()=>{
+ const blob=new Blob([JSON.stringify({version:1,days:dailyHistory})],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='imile-historico.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$("restoreHistory").addEventListener('change',async e=>{
+ try{const file=e.target.files[0];if(!file)return;const data=JSON.parse(await file.text());HistoryStore.validate(data);
+ if(!confirm('Restaurar o histórico? Dias com a mesma data serão substituídos.'))return;
+ await HistoryStore.restore(data.days);Object.assign(dailyHistory,data.days);refreshMonths();loadMonth();
+ }catch(err){alert('Não foi possível restaurar: '+err.message);}finally{e.target.value='';}
+});
+HistoryStore.all().then(days=>{dailyHistory=days;refreshMonths();loadMonth();}).catch(err=>{$("historyInfo").textContent='Falha no armazenamento: '+err.message;$("fileInput").disabled=true;});
+
