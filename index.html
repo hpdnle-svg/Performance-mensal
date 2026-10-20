@@ -380,7 +380,7 @@ async function cloudPut(obj){await cloudFetch('/rest/v1/performance_days?on_conf
 async function cloudDelete(date){await cloudFetch('/rest/v1/performance_days?date=eq.'+encodeURIComponent(date),{method:'DELETE',headers:{'Prefer':'return=minimal'}})}
 async function cloudClear(){await cloudFetch('/rest/v1/performance_days?date=not.is.null',{method:'DELETE',headers:{'Prefer':'return=minimal'}})}
 
-async function dbGet(date){const day=await (cloudSelected?cloudGet(date):localGet(date));return day?{...day,rows:normalizeRows(day.rows)}:day}
+async function dbGet(date){if(!date)return undefined;const day=await (cloudSelected?cloudGet(date):localGet(date));return day?{...day,rows:normalizeRows(day.rows)}:day}
 async function dbGetAll(){const days=await (cloudSelected?cloudGetAll():localGetAll());return days.map(day=>({...day,rows:normalizeRows(day.rows)}))}
 async function dbPut(obj){const day={...obj,rows:normalizeRows(obj.rows)};return cloudSelected?cloudPut(day):localPut(day)}
 async function dbDelete(date){return cloudSelected?cloudDelete(date):localDelete(date)}
