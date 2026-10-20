@@ -303,7 +303,7 @@ table{width:100%;border-collapse:collapse;min-width:1050px} th{position:sticky;t
           <input id="cloudEmail" type="email" placeholder="E-mail do usuário Supabase" style="min-width:240px">
           <input id="cloudPassword" type="password" placeholder="Senha" style="min-width:180px">
           <button id="cloudLoginBtn" class="primary">☁️ Entrar no banco online</button>
-          <button id="cloudLogoutBtn" class="ghost">Sair</button>
+          <button id="cloudReloadBtn" class="ghost">↻ Atualizar do banco online</button><button id="cloudLogoutBtn" class="ghost">Sair</button>
           <button id="migrateLocalBtn" class="ghost">⬆️ Enviar histórico local para nuvem</button>
         </div>
         <div id="cloudMessage" class="sub" style="margin-top:8px">Aguardando configuração do Supabase.</div>
@@ -316,6 +316,7 @@ table{width:100%;border-collapse:collapse;min-width:1050px} th{position:sticky;t
 <footer class="appFooter">iMile Performance Regional SP · Histórico local e Supabase</footer>
 
 <script src="supabase-settings.js"></script>
+<script src="sync-safety.js"></script>
 <script src="jszip.min.js"></script>
 <script>
 const SEED_DATE='2026-08-03';
@@ -341,47 +342,61 @@ function openDB(){
 }
 function localGet(date){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readonly').objectStore(STORE).get(date);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 function localGetAll(){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readonly').objectStore(STORE).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
-function localPut(obj){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).put(obj);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+function localPut(obj){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(obj);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('Gravação local cancelada.'))})}
 function localDelete(date){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).delete(date);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
 function localClear(){return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
 
 const SUPABASE_CFG=window.SUPABASE_CONFIG||{};
 let cloudToken=sessionStorage.getItem('prs_supabase_token')||'';
 let cloudUser=sessionStorage.getItem('prs_supabase_user')||'';
+let cloudSelected=Boolean(cloudToken);
+let cloudRefresh=sessionStorage.getItem('prs_supabase_refresh')||'';
+let refreshPending=null;
 const cloudConfigured=()=>Boolean(SUPABASE_CFG.url&&SUPABASE_CFG.anonKey&&!String(SUPABASE_CFG.url).includes('SEU-PROJETO'));
 const cloudActive=()=>cloudConfigured()&&Boolean(cloudToken);
 function cloudHeaders(extra={}){return {'apikey':SUPABASE_CFG.anonKey,'Authorization':'Bearer '+cloudToken,'Content-Type':'application/json',...extra}}
-async function cloudFetch(path,opts={}){
+async function renewCloudSession(){
+ if(!cloudRefresh)throw new Error('Sessão online expirada. Entre novamente; nenhum dado foi gravado no banco local.');
+ if(!refreshPending)refreshPending=(async()=>{
+ const r=await fetch(SUPABASE_CFG.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SUPABASE_CFG.anonKey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:cloudRefresh})});
+ const j=await r.json();if(!r.ok)throw new Error('Sessão online expirada. Entre novamente.');
+ cloudToken=j.access_token;cloudRefresh=j.refresh_token;sessionStorage.setItem('prs_supabase_token',cloudToken);sessionStorage.setItem('prs_supabase_refresh',cloudRefresh);
+ })().finally(()=>{refreshPending=null});
+ return refreshPending;
+}
+async function cloudFetch(path,opts={},retried=false){
+ if(!cloudToken)throw new Error('Entre novamente no banco online.');
  const r=await fetch(SUPABASE_CFG.url.replace(/\/$/,'')+path,{...opts,headers:{...cloudHeaders(),...(opts.headers||{})}});
- if(!r.ok){let msg='Erro '+r.status;try{const e=await r.json();msg=e.message||e.error_description||e.hint||msg}catch{};if(r.status===401){cloudToken='';sessionStorage.removeItem('prs_supabase_token')}throw new Error(msg)}
+ if(r.status===401&&!retried){await renewCloudSession();return cloudFetch(path,opts,true)}
+ if(!r.ok){let msg='Erro '+r.status;try{const e=await r.json();msg=e.message||e.error_description||e.hint||msg}catch{};if(r.status===401){updateCloudUi()}throw new Error(msg)}
  if(r.status===204)return null;const txt=await r.text();return txt?JSON.parse(txt):null;
 }
 function mapCloudRow(x){return {date:x.date,sourceName:x.source_name||'',importedAt:x.imported_at||'',rows:Array.isArray(x.rows)?x.rows:[]}}
 async function cloudGet(date){const a=await cloudFetch('/rest/v1/performance_days?date=eq.'+encodeURIComponent(date)+'&select=date,source_name,imported_at,rows');return a&&a[0]?mapCloudRow(a[0]):undefined}
-async function cloudGetAll(){const a=await cloudFetch('/rest/v1/performance_days?select=date,source_name,imported_at,rows&order=date.asc');return (a||[]).map(mapCloudRow)}
+async function cloudGetAll(){const all=[];let offset=0;while(true){const page=await cloudFetch('/rest/v1/performance_days?select=date,source_name,imported_at,rows&order=date.asc&limit=100&offset='+offset);if(!Array.isArray(page))throw new Error('Resposta inválida do banco online.');all.push(...page.map(mapCloudRow));if(!page.length)break;offset+=page.length;}return all}
 async function cloudPut(obj){await cloudFetch('/rest/v1/performance_days?on_conflict=date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({date:obj.date,source_name:obj.sourceName||'',imported_at:obj.importedAt||new Date().toISOString(),rows:obj.rows||[]})})}
 async function cloudDelete(date){await cloudFetch('/rest/v1/performance_days?date=eq.'+encodeURIComponent(date),{method:'DELETE',headers:{'Prefer':'return=minimal'}})}
 async function cloudClear(){await cloudFetch('/rest/v1/performance_days?date=not.is.null',{method:'DELETE',headers:{'Prefer':'return=minimal'}})}
 
-async function dbGet(date){const day=await (cloudActive()?cloudGet(date):localGet(date));return day?{...day,rows:normalizeRows(day.rows)}:day}
-async function dbGetAll(){const days=await (cloudActive()?cloudGetAll():localGetAll());return days.map(day=>({...day,rows:normalizeRows(day.rows)}))}
-async function dbPut(obj){const day={...obj,rows:normalizeRows(obj.rows)};return cloudActive()?cloudPut(day):localPut(day)}
-async function dbDelete(date){return cloudActive()?cloudDelete(date):localDelete(date)}
-async function dbClear(){return cloudActive()?cloudClear():localClear()}
+async function dbGet(date){const day=await (cloudSelected?cloudGet(date):localGet(date));return day?{...day,rows:normalizeRows(day.rows)}:day}
+async function dbGetAll(){const days=await (cloudSelected?cloudGetAll():localGetAll());return days.map(day=>({...day,rows:normalizeRows(day.rows)}))}
+async function dbPut(obj){const day={...obj,rows:normalizeRows(obj.rows)};return cloudSelected?cloudPut(day):localPut(day)}
+async function dbDelete(date){return cloudSelected?cloudDelete(date):localDelete(date)}
+async function dbClear(){return cloudSelected?cloudClear():localClear()}
 
 async function cloudLogin(){
  if(!cloudConfigured())throw new Error('Supabase ainda não configurado. Preencha config.js.');
  const email=cloudEmail.value.trim(),password=cloudPassword.value;if(!email||!password)throw new Error('Informe e-mail e senha.');
  const r=await fetch(SUPABASE_CFG.url.replace(/\/$/,'')+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'apikey':SUPABASE_CFG.anonKey,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
  const j=await r.json();if(!r.ok)throw new Error(j.error_description||j.msg||'Não foi possível entrar.');
- cloudToken=j.access_token;cloudUser=j.user?.email||email;sessionStorage.setItem('prs_supabase_token',cloudToken);sessionStorage.setItem('prs_supabase_user',cloudUser);cloudPassword.value='';updateCloudUi();await refreshAll();
+ cloudSelected=true;cloudRefresh=j.refresh_token||'';sessionStorage.setItem('prs_supabase_refresh',cloudRefresh);cloudToken=j.access_token;cloudUser=j.user?.email||email;sessionStorage.setItem('prs_supabase_token',cloudToken);sessionStorage.setItem('prs_supabase_user',cloudUser);cloudPassword.value='';updateCloudUi();await refreshAll();
 }
-function showPasswordRecoveryIfNeeded(){ const params=new URLSearchParams(location.hash.replace(/^#/,'')); const token=params.get('access_token')||''; if(params.get('type')!=='recovery'||!token)return; const overlay=document.createElement('div'); overlay.id='passwordRecoveryModal'; overlay.setAttribute('role','dialog'); overlay.setAttribute('aria-modal','true'); overlay.setAttribute('aria-labelledby','recoveryTitle'); overlay.style.cssText='position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;background:rgba(2,24,58,.78);backdrop-filter:blur(8px)'; overlay.innerHTML='<form style="width:min(460px,100%);background:#fff;border:1px solid #cbd8ea;border-radius:18px;box-shadow:0 24px 70px rgba(0,25,70,.34);padding:30px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#08275c"><div style="font-size:13px;font-weight:800;color:#0b66e4;letter-spacing:.04em;margin-bottom:8px">ACESSO AO BANCO ONLINE</div><h2 id="recoveryTitle" style="margin:0 0 8px;font-size:26px;line-height:1.15">Crie uma nova senha</h2><p style="margin:0 0 22px;color:#536784;font-size:14px;line-height:1.5">Use no mínimo 8 caracteres. Esta senha será usada para entrar no histórico compartilhado.</p><label style="display:block;font-size:13px;font-weight:800;margin:0 0 7px" for="recoveryPassword">Nova senha</label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required style="width:100%;height:46px;border:1px solid #b9c9df;border-radius:10px;padding:0 13px;font:600 15px Inter,Segoe UI,Arial,sans-serif;outline:none;margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:800;margin:0 0 7px" for="recoveryPasswordConfirm">Confirmar nova senha</label><input id="recoveryPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required style="width:100%;height:46px;border:1px solid #b9c9df;border-radius:10px;padding:0 13px;font:600 15px Inter,Segoe UI,Arial,sans-serif;outline:none"><p id="recoveryMessage" role="status" style="min-height:21px;margin:13px 0;color:#b42318;font-size:13px;font-weight:700"></p><button id="recoverySave" type="submit" style="width:100%;height:47px;border:0;border-radius:10px;background:#0868df;color:#fff;font:800 15px Inter,Segoe UI,Arial,sans-serif;cursor:pointer">Salvar nova senha</button></form>'; document.body.appendChild(overlay); const form=overlay.querySelector('form'),password=overlay.querySelector('#recoveryPassword'),confirmation=overlay.querySelector('#recoveryPasswordConfirm'),message=overlay.querySelector('#recoveryMessage'),save=overlay.querySelector('#recoverySave'); setTimeout(()=>password.focus(),50); form.addEventListener('submit',async event=>{  event.preventDefault();  if(password.value.length<8){message.textContent='A senha precisa ter pelo menos 8 caracteres.';return}  if(password.value!==confirmation.value){message.textContent='As senhas digitadas não são iguais.';return}  save.disabled=true;save.textContent='Salvando...';message.textContent='';  try{   const response=await fetch(SUPABASE_CFG.url.replace(/\/$/,'')+'/auth/v1/user',{method:'PUT',headers:{'apikey':SUPABASE_CFG.anonKey,'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({password:password.value})});   const result=await response.json();   if(!response.ok)throw new Error(result.msg||result.error_description||result.message||'Não foi possível atualizar a senha.');   cloudToken=token;cloudUser=result.email||'';sessionStorage.setItem('prs_supabase_token',cloudToken);sessionStorage.setItem('prs_supabase_user',cloudUser);   history.replaceState(null,document.title,location.pathname+location.search);   message.style.color='#137333';message.textContent='Senha atualizada com sucesso.';   save.disabled=false;save.type='button';save.textContent='Entrar no painel';   save.onclick=async()=>{overlay.remove();updateCloudUi();await refreshAll()};  }catch(error){message.textContent='❌ '+error.message;save.disabled=false;save.textContent='Salvar nova senha'} });}function cloudLogout(){cloudToken='';cloudUser='';sessionStorage.removeItem('prs_supabase_token');sessionStorage.removeItem('prs_supabase_user');updateCloudUi();refreshAll()}
+function showPasswordRecoveryIfNeeded(){ const params=new URLSearchParams(location.hash.replace(/^#/,'')); const token=params.get('access_token')||''; if(params.get('type')!=='recovery'||!token)return; const overlay=document.createElement('div'); overlay.id='passwordRecoveryModal'; overlay.setAttribute('role','dialog'); overlay.setAttribute('aria-modal','true'); overlay.setAttribute('aria-labelledby','recoveryTitle'); overlay.style.cssText='position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;background:rgba(2,24,58,.78);backdrop-filter:blur(8px)'; overlay.innerHTML='<form style="width:min(460px,100%);background:#fff;border:1px solid #cbd8ea;border-radius:18px;box-shadow:0 24px 70px rgba(0,25,70,.34);padding:30px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#08275c"><div style="font-size:13px;font-weight:800;color:#0b66e4;letter-spacing:.04em;margin-bottom:8px">ACESSO AO BANCO ONLINE</div><h2 id="recoveryTitle" style="margin:0 0 8px;font-size:26px;line-height:1.15">Crie uma nova senha</h2><p style="margin:0 0 22px;color:#536784;font-size:14px;line-height:1.5">Use no mínimo 8 caracteres. Esta senha será usada para entrar no histórico compartilhado.</p><label style="display:block;font-size:13px;font-weight:800;margin:0 0 7px" for="recoveryPassword">Nova senha</label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required style="width:100%;height:46px;border:1px solid #b9c9df;border-radius:10px;padding:0 13px;font:600 15px Inter,Segoe UI,Arial,sans-serif;outline:none;margin-bottom:16px"><label style="display:block;font-size:13px;font-weight:800;margin:0 0 7px" for="recoveryPasswordConfirm">Confirmar nova senha</label><input id="recoveryPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required style="width:100%;height:46px;border:1px solid #b9c9df;border-radius:10px;padding:0 13px;font:600 15px Inter,Segoe UI,Arial,sans-serif;outline:none"><p id="recoveryMessage" role="status" style="min-height:21px;margin:13px 0;color:#b42318;font-size:13px;font-weight:700"></p><button id="recoverySave" type="submit" style="width:100%;height:47px;border:0;border-radius:10px;background:#0868df;color:#fff;font:800 15px Inter,Segoe UI,Arial,sans-serif;cursor:pointer">Salvar nova senha</button></form>'; document.body.appendChild(overlay); const form=overlay.querySelector('form'),password=overlay.querySelector('#recoveryPassword'),confirmation=overlay.querySelector('#recoveryPasswordConfirm'),message=overlay.querySelector('#recoveryMessage'),save=overlay.querySelector('#recoverySave'); setTimeout(()=>password.focus(),50); form.addEventListener('submit',async event=>{  event.preventDefault();  if(password.value.length<8){message.textContent='A senha precisa ter pelo menos 8 caracteres.';return}  if(password.value!==confirmation.value){message.textContent='As senhas digitadas não são iguais.';return}  save.disabled=true;save.textContent='Salvando...';message.textContent='';  try{   const response=await fetch(SUPABASE_CFG.url.replace(/\/$/,'')+'/auth/v1/user',{method:'PUT',headers:{'apikey':SUPABASE_CFG.anonKey,'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({password:password.value})});   const result=await response.json();   if(!response.ok)throw new Error(result.msg||result.error_description||result.message||'Não foi possível atualizar a senha.');   cloudSelected=true;cloudToken=token;cloudUser=result.email||'';sessionStorage.setItem('prs_supabase_token',cloudToken);sessionStorage.setItem('prs_supabase_user',cloudUser);   history.replaceState(null,document.title,location.pathname+location.search);   message.style.color='#137333';message.textContent='Senha atualizada com sucesso.';   save.disabled=false;save.type='button';save.textContent='Entrar no painel';   save.onclick=async()=>{overlay.remove();updateCloudUi();await refreshAll()};  }catch(error){message.textContent='❌ '+error.message;save.disabled=false;save.textContent='Salvar nova senha'} });}function cloudLogout(){cloudSelected=false;cloudRefresh='';sessionStorage.removeItem('prs_supabase_refresh');cloudToken='';cloudUser='';sessionStorage.removeItem('prs_supabase_token');sessionStorage.removeItem('prs_supabase_user');updateCloudUi();refreshAll()}
 async function migrateLocalToCloud(){
  if(!cloudActive())throw new Error('Entre no banco online primeiro.');
  const local=await localGetAll();if(!local.length)throw new Error('Não há histórico local para enviar.');
- if(!confirm('Enviar '+local.length+' dia(s) do histórico local para a nuvem? Datas iguais serão atualizadas.'))return;
- let ok=0;for(const d of local){await cloudPut(d);ok++}cloudMessage.textContent='✅ '+ok+' dia(s) enviados para o Supabase.';await refreshAll();
+ const result=await safeImportDays(local,true);
+ cloudMessage.textContent=result;await refreshAll();
 }
 function updateCloudUi(){
  if(!cloudConfigured()){dbStatus.textContent='Modo local · Supabase não configurado';if(typeof cloudMessage!=='undefined')cloudMessage.textContent='Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo config.js.';return}
@@ -943,7 +958,7 @@ async function backup(){
  const data=await dbGetAll();const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),days:data},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Performance_Regional_SP_Backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 async function restore(file){
- try{const parsed=JSON.parse(await file.text());if(!Array.isArray(parsed.days))throw new Error('Backup inválido.');if(!confirm('Restaurar este backup substituirá o banco local atual. Continuar?'))return;await dbClear();for(const d of parsed.days)await dbPut(d);await refreshAll();alert('Backup restaurado com sucesso.')}catch(e){alert('Erro ao restaurar: '+e.message)}
+ try{const parsed=JSON.parse(await file.text());validateBackupDays(parsed.days);const result=await safeImportDays(parsed.days,cloudSelected);await refreshAll();alert(result)}catch(e){alert('Erro ao restaurar: '+e.message)}
 }
 
 async function refreshAll(){await refreshSelectors();await fillRankDays();await fillWeekOptions();await renderDaily();await renderMonthly();await renderRanking();await renderSupervisor();await renderHistory()}
@@ -954,8 +969,9 @@ rankMonth.addEventListener('change',async()=>{await fillRankDays();renderRanking
 weekSup.addEventListener('change',renderSupervisor);weekStart.addEventListener('change',renderSupervisor);weekMetric.addEventListener('change',renderSupervisor);weekImageBtn.addEventListener('click',drawSupervisorWeekImage);weekDs.addEventListener('change',renderWeekDs);weekDsImageBtn.addEventListener('click',drawWeekDsImage);
 quickImportBtn.addEventListener('click',()=>{document.querySelector('[data-view="history"]').click();setTimeout(()=>excelFiles.click(),50)});
 importBatchBtn.addEventListener('click',importBatchFiles);backupBtn.addEventListener('click',backup);restoreBtn.addEventListener('click',()=>restoreFile.click());restoreFile.addEventListener('change',()=>{if(restoreFile.files[0])restore(restoreFile.files[0])});
-cloudLoginBtn.addEventListener('click',async()=>{try{cloudMessage.textContent='Conectando...';await cloudLogin()}catch(e){cloudMessage.textContent='❌ '+e.message;updateCloudUi()}});
+cloudLoginBtn.addEventListener('click',async()=>{try{cloudMessage.textContent='Conectando...';await cloudLogin()}catch(e){updateCloudUi();cloudMessage.textContent='❌ '+e.message}});
 cloudLogoutBtn.addEventListener('click',cloudLogout);
+document.getElementById('cloudReloadBtn').addEventListener('click',async()=>{try{if(!cloudSelected)throw new Error('Faça login no banco online primeiro.');await refreshAll();cloudMessage.textContent='✅ Histórico atualizado do Supabase.'}catch(e){cloudMessage.textContent='❌ '+e.message}});
 migrateLocalBtn.addEventListener('click',async()=>{try{cloudMessage.textContent='Enviando histórico local...';await migrateLocalToCloud()}catch(e){cloudMessage.textContent='❌ '+e.message}});
 window.addEventListener('resize',()=>{const active=document.querySelector('.view.active')?.id;if(active==='view-daily')renderDaily();if(active==='view-monthly')renderMonthly();if(active==='view-ranking')renderRanking();if(active==='view-supervisor'){renderSupervisor();renderWeekDs()}});
 (async()=>{try{showPasswordRecoveryIfNeeded();db=await openDB();await seedIfNeeded();updateCloudUi();await refreshAll();updateCloudUi()}catch(e){dbStatus.textContent='Erro no banco';alert(e.message)}})();
