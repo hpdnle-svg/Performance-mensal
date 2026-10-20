@@ -373,7 +373,9 @@ async function cloudFetch(path,opts={},retried=false){
 }
 function mapCloudRow(x){return {date:x.date,sourceName:x.source_name||'',importedAt:x.imported_at||'',rows:Array.isArray(x.rows)?x.rows:[]}}
 async function cloudGet(date){const a=await cloudFetch('/rest/v1/performance_days?date=eq.'+encodeURIComponent(date)+'&select=date,source_name,imported_at,rows');return a&&a[0]?mapCloudRow(a[0]):undefined}
-async function cloudGetAll(){const all=[];let offset=0;while(true){const page=await cloudFetch('/rest/v1/performance_days?select=date,source_name,imported_at,rows&order=date.asc&limit=100&offset='+offset);if(!Array.isArray(page))throw new Error('Resposta inválida do banco online.');all.push(...page.map(mapCloudRow));if(!page.length)break;offset+=page.length;}return all}
+let cloudRenderSnapshot=false,cloudRenderRead=null,refreshInProgress=null;
+async function cloudGetAll(){if(!cloudRenderSnapshot)return readCloudDays();if(!cloudRenderRead)cloudRenderRead=readCloudDays();return cloudRenderRead}
+async function readCloudDays(){const all=[];let offset=0;while(true){const page=await cloudFetch('/rest/v1/performance_days?select=date,source_name,imported_at,rows&order=date.asc&limit=100&offset='+offset);if(!Array.isArray(page))throw new Error('Resposta inválida do banco online.');all.push(...page.map(mapCloudRow));if(!page.length)break;offset+=page.length;}return all}
 async function cloudPut(obj){await cloudFetch('/rest/v1/performance_days?on_conflict=date',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({date:obj.date,source_name:obj.sourceName||'',imported_at:obj.importedAt||new Date().toISOString(),rows:obj.rows||[]})})}
 async function cloudDelete(date){await cloudFetch('/rest/v1/performance_days?date=eq.'+encodeURIComponent(date),{method:'DELETE',headers:{'Prefer':'return=minimal'}})}
 async function cloudClear(){await cloudFetch('/rest/v1/performance_days?date=not.is.null',{method:'DELETE',headers:{'Prefer':'return=minimal'}})}
@@ -961,7 +963,11 @@ async function restore(file){
  try{const parsed=JSON.parse(await file.text());validateBackupDays(parsed.days);const result=await safeImportDays(parsed.days,cloudSelected);await refreshAll();alert(result)}catch(e){alert('Erro ao restaurar: '+e.message)}
 }
 
-async function refreshAll(){await refreshSelectors();await fillRankDays();await fillWeekOptions();await renderDaily();await renderMonthly();await renderRanking();await renderSupervisor();await renderHistory()}
+async function refreshAll(){
+ if(refreshInProgress)return refreshInProgress;
+ refreshInProgress=(async()=>{cloudRenderSnapshot=true;cloudRenderRead=null;try{await refreshSelectors();await fillRankDays();await fillWeekOptions();await renderDaily();await renderMonthly();await renderRanking();await renderSupervisor();await renderHistory()}finally{cloudRenderSnapshot=false;cloudRenderRead=null}})().finally(()=>{refreshInProgress=null});
+ return refreshInProgress;
+}
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('view-'+b.dataset.view).classList.add('active');setTimeout(()=>{if(b.dataset.view==='daily')renderDaily();if(b.dataset.view==='monthly')renderMonthly();if(b.dataset.view==='ranking')renderRanking();if(b.dataset.view==='supervisor')renderSupervisor();if(b.dataset.view==='history')renderHistory()},20)}));
 dailyDate.addEventListener('change',async()=>{await refreshDailyDs();renderDaily()});dailySup.addEventListener('change',async()=>{await refreshDailyDs();renderDaily()});dailyDs.addEventListener('change',renderDaily);
 monthPicker.addEventListener('change',async()=>{await refreshMonthDs();renderMonthly()});monthSup.addEventListener('change',async()=>{await refreshMonthDs();renderMonthly()});monthDs.addEventListener('change',renderMonthly);
