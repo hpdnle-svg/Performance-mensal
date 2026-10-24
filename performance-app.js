@@ -76,7 +76,6 @@ const BASE_SUPERVISORS = {
   "DS AGFI": "Daniel Coutinho",
   "DS JDP": "Dennis Pereira dos Santos",
   "DS BLV": "Daniel Coutinho",
-  "DS LBD": "Daniel Coutinho",
   "DS ACM": "Daniel Coutinho",
   "DS BCC": "Daniel Coutinho",
   "DS SVT": "Daniel Rubio Tavares",
